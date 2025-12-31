@@ -1,8 +1,9 @@
 {
   "expo": {
-    "name": "hamkke-temp",
-    "slug": "hamkke-temp",
+    "name": "함께크는",
+    "slug": "hamkke",
     "version": "1.0.0",
+    "scheme": "hamkke",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
