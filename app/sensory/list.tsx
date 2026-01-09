@@ -15,12 +15,12 @@ import { SensoryProfile } from '../../types';
 import RadarChart from '../../components/RadarChart';
 
 const SENSORY_TYPES = [
-  { key: 'visual', name: '시각', icon: '👁️', color: '#FF6B6B' },
-  { key: 'auditory', name: '청각', icon: '👂', color: '#4ECDC4' },
-  { key: 'tactile', name: '촉각', icon: '✋', color: '#95E1D3' },
-  { key: 'vestibular', name: '전정감각', icon: '🌀', color: '#F3A683' },
-  { key: 'proprioceptive', name: '고유수용감각', icon: '💪', color: '#786FA6' },
-  { key: 'oral', name: '구강', icon: '👄', color: '#F8B500' },
+  { key: 'visual', name: '시각', shortName: '시각', icon: '👁️', color: '#FF6B6B' },
+  { key: 'auditory', name: '청각', shortName: '청각', icon: '👂', color: '#4ECDC4' },
+  { key: 'tactile', name: '촉각', shortName: '촉각', icon: '✋', color: '#95E1D3' },
+  { key: 'vestibular', name: '전정감각', shortName: '전정', icon: '🌀', color: '#F3A683' },
+  { key: 'proprioceptive', name: '고유수용감각', shortName: '고유수용', icon: '💪', color: '#786FA6' },
+  { key: 'oral', name: '구강', shortName: '구강', icon: '👄', color: '#F8B500' },
 ];
 
 export default function SensoryProfileListScreen() {
@@ -131,34 +131,6 @@ export default function SensoryProfileListScreen() {
         </View>
       </View>
 
-      {/* 레이더 차트 */}
-      {latestProfile && (
-        <View style={styles.chartContainer}>
-          <Text style={styles.chartTitle}>최근 감각 프로파일</Text>
-          <Text style={styles.chartDate}>{formatDate(latestProfile.date)}</Text>
-          <RadarChart
-            data={SENSORY_TYPES.map(type => ({
-              label: type.name,
-              value: latestProfile[type.key as keyof SensoryProfile] as number,
-              icon: type.icon,
-            }))}
-            size={300}
-            maxValue={10}
-            color="#007AFF"
-          />
-          <View style={styles.chartStats}>
-            <View style={styles.chartStat}>
-              <Text style={styles.chartStatValue}>{latestAverage}</Text>
-              <Text style={styles.chartStatLabel}>평균 점수</Text>
-            </View>
-            <View style={styles.chartStat}>
-              <Text style={styles.chartStatValue}>{profiles.length}</Text>
-              <Text style={styles.chartStatLabel}>총 기록</Text>
-            </View>
-          </View>
-        </View>
-      )}
-
       {loading ? (
         <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 20 }} />
       ) : profiles.length === 0 ? (
@@ -227,6 +199,37 @@ export default function SensoryProfileListScreen() {
               </View>
             </View>
           )}
+          ListHeaderComponent={
+            <Text style={styles.listTitle}>기록 목록</Text>
+          }
+          ListFooterComponent={
+            latestProfile ? (
+              <View style={styles.chartContainer}>
+                <Text style={styles.chartTitle}>감각 프로파일 요약</Text>
+                <Text style={styles.chartDate}>최근: {formatDate(latestProfile.date)}</Text>
+                <RadarChart
+                  data={SENSORY_TYPES.map(type => ({
+                    label: type.shortName,
+                    value: latestProfile[type.key as keyof SensoryProfile] as number,
+                    icon: type.icon,
+                  }))}
+                  size={280}
+                  maxValue={10}
+                  color="#007AFF"
+                />
+                <View style={styles.chartStats}>
+                  <View style={styles.chartStat}>
+                    <Text style={styles.chartStatValue}>{latestAverage}</Text>
+                    <Text style={styles.chartStatLabel}>평균 점수</Text>
+                  </View>
+                  <View style={styles.chartStat}>
+                    <Text style={styles.chartStatValue}>{profiles.length}</Text>
+                    <Text style={styles.chartStatLabel}>총 기록</Text>
+                  </View>
+                </View>
+              </View>
+            ) : null
+          }
           contentContainerStyle={{ padding: 20 }}
         />
       )}
@@ -278,12 +281,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
+  listTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 16,
+  },
   chartContainer: {
     backgroundColor: '#f8f9fa',
     padding: 20,
     alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderRadius: 12,
+    marginTop: 20,
   },
   chartTitle: {
     fontSize: 18,
