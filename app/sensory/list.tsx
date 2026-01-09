@@ -102,6 +102,12 @@ export default function SensoryProfileListScreen() {
   const latestProfile = profiles.length > 0 ? profiles[0] : null;
   const latestAverage = latestProfile ? calculateAverage(latestProfile) : '0.0';
 
+  // 최근 평가 날짜 (간단 형식)
+  const getShortDate = (dateString: string) => {
+    const [year, month, day] = dateString.split('-');
+    return `${parseInt(month)}월 ${parseInt(day)}일`;
+  };
+
   if (!selectedChild) {
     return (
       <View style={styles.container}>
@@ -130,6 +136,24 @@ export default function SensoryProfileListScreen() {
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* 통계 카드 */}
+      {profiles.length > 0 && (
+        <View style={styles.statsContainer}>
+          <View style={styles.statCard}>
+            <Text style={styles.statNumber}>{latestAverage}</Text>
+            <Text style={styles.statLabel}>평균 점수</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statNumber}>{profiles.length}</Text>
+            <Text style={styles.statLabel}>총 기록</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statNumber}>{latestProfile ? getShortDate(latestProfile.date) : '-'}</Text>
+            <Text style={styles.statLabel}>최근 평가</Text>
+          </View>
+        </View>
+      )}
 
       {loading ? (
         <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 20 }} />
@@ -280,6 +304,32 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: '600',
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    padding: 20,
+    paddingTop: 15,
+    paddingBottom: 15,
+    gap: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  statNumber: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#007AFF',
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#666',
   },
   listTitle: {
     fontSize: 18,
