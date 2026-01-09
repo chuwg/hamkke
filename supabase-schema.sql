@@ -24,6 +24,7 @@ CREATE TABLE schedules (
   is_recurring BOOLEAN DEFAULT FALSE,
   recurrence_rule TEXT, -- RRULE format
   reminder_minutes INTEGER,
+  calendar_event_id TEXT, -- 네이티브 캘린더 이벤트 ID (iOS/Android)
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );

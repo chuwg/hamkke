@@ -10,6 +10,13 @@ export interface Child {
   updated_at: string;
 }
 
+// 일정 반복 규칙 타입
+export interface RecurrenceRule {
+  type: 'weekly';
+  days: number[]; // 0=일요일, 1=월요일, ..., 6=토요일
+  endDate?: string; // YYYY-MM-DD
+}
+
 // 일정 타입
 export interface Schedule {
   id: string;
@@ -19,8 +26,9 @@ export interface Schedule {
   start_time: string;
   end_time: string;
   is_recurring: boolean;
-  recurrence_rule?: string;
+  recurrence_rule?: string; // JSON string of RecurrenceRule
   reminder_minutes?: number;
+  calendar_event_id?: string; // 네이티브 캘린더 이벤트 ID (모바일 전용)
   created_at: string;
   updated_at: string;
 }
