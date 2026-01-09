@@ -35,7 +35,7 @@ function expandRecurringSchedules(schedules: Schedule[], startDate: Date, endDat
 
       // 시작 날짜부터 종료 날짜까지 반복
       const current = new Date(Math.max(scheduleDate.getTime(), startDate.getTime()));
-      while (current <= Math.min(ruleEndDate, endDate)) {
+      while (current.getTime() <= Math.min(ruleEndDate.getTime(), endDate.getTime())) {
         const dayOfWeek = current.getDay(); // 0=일요일, 6=토요일
 
         if (rule.days.includes(dayOfWeek)) {

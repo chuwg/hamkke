@@ -31,7 +31,7 @@ function expandRecurringSchedules(schedules: Schedule[], startDate: Date, endDat
       const ruleEndDate = rule.endDate ? new Date(rule.endDate) : endDate;
 
       const current = new Date(Math.max(scheduleDate.getTime(), startDate.getTime()));
-      while (current <= Math.min(ruleEndDate, endDate)) {
+      while (current.getTime() <= Math.min(ruleEndDate.getTime(), endDate.getTime())) {
         const dayOfWeek = current.getDay();
 
         if (rule.days.includes(dayOfWeek)) {
