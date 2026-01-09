@@ -115,13 +115,20 @@ export default function SensoryProfileListScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>감각 프로파일</Text>
-          <Text style={styles.subtitle}>{selectedChild.name}의 감각 평가</Text>
+        <View style={styles.headerNav}>
+          <TouchableOpacity onPress={() => router.push('/(tabs)')}>
+            <Text style={styles.backButton}>← 홈</Text>
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.addButton} onPress={handleAddProfile}>
-          <Text style={styles.addButtonText}>+ 추가</Text>
-        </TouchableOpacity>
+        <View style={styles.headerTop}>
+          <View>
+            <Text style={styles.title}>감각 프로파일</Text>
+            <Text style={styles.subtitle}>{selectedChild.name}의 감각 평가</Text>
+          </View>
+          <TouchableOpacity style={styles.addButton} onPress={handleAddProfile}>
+            <Text style={styles.addButtonText}>+ 추가</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* 레이더 차트 */}
@@ -233,12 +240,22 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
+  },
+  headerNav: {
+    marginBottom: 10,
+  },
+  backButton: {
+    fontSize: 16,
+    color: '#007AFF',
+    fontWeight: '500',
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   title: {
     fontSize: 24,

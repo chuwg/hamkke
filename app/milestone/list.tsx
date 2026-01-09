@@ -135,6 +135,11 @@ export default function MilestoneListScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
+        <View style={styles.headerNav}>
+          <TouchableOpacity onPress={() => router.push('/(tabs)')}>
+            <Text style={styles.backButton}>← 홈</Text>
+          </TouchableOpacity>
+        </View>
         <View style={styles.headerTop}>
           <View>
             <Text style={styles.title}>발달 마일스톤</Text>
@@ -276,6 +281,14 @@ const styles = StyleSheet.create({
     padding: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
+  },
+  headerNav: {
+    marginBottom: 10,
+  },
+  backButton: {
+    fontSize: 16,
+    color: '#007AFF',
+    fontWeight: '500',
   },
   headerTop: {
     flexDirection: 'row',
