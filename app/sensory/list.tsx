@@ -384,7 +384,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: '#333',
-    width: 90,
+    width: 100,
+    flexShrink: 0,
   },
   scoreContainer: {
     flex: 1,
