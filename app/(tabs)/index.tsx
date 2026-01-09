@@ -209,21 +209,21 @@ export default function HomeScreen() {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.actionButton}
-          onPress={() => router.push('/therapy/add')}
+          onPress={() => router.push('/(tabs)/records')}
         >
           <Text style={styles.actionIcon}>💊</Text>
           <Text style={styles.actionText}>치료 기록</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.actionButton}
-          onPress={() => router.push('/milestone/add')}
+          onPress={() => router.push('/milestone/list')}
         >
           <Text style={styles.actionIcon}>🎯</Text>
           <Text style={styles.actionText}>마일스톤</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.actionButton}
-          onPress={() => router.push('/sensory/add')}
+          onPress={() => router.push('/sensory/list')}
         >
           <Text style={styles.actionIcon}>🌈</Text>
           <Text style={styles.actionText}>감각 평가</Text>
@@ -233,14 +233,14 @@ export default function HomeScreen() {
           onPress={() => router.push('/(tabs)/schedule')}
         >
           <Text style={styles.actionIcon}>📋</Text>
-          <Text style={styles.actionText}>일정 보기</Text>
+          <Text style={styles.actionText}>전체 일정</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.actionButton}
-          onPress={() => router.push('/(tabs)/records')}
+          onPress={() => router.push('/(tabs)/profile')}
         >
-          <Text style={styles.actionIcon}>📊</Text>
-          <Text style={styles.actionText}>기록 보기</Text>
+          <Text style={styles.actionIcon}>👤</Text>
+          <Text style={styles.actionText}>프로필</Text>
         </TouchableOpacity>
       </View>
 
