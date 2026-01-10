@@ -13,6 +13,7 @@ import { useChild } from '../../contexts/ChildContext';
 import { sensoryProfilesApi } from '../../services/database';
 import { SensoryProfile } from '../../types';
 import RadarChart from '../../components/RadarChart';
+import FooterNav from '../../components/FooterNav';
 
 const SENSORY_TYPES = [
   { key: 'visual', name: '시각', shortName: '시각', icon: '👁️', color: '#FF6B6B' },
@@ -121,11 +122,6 @@ export default function SensoryProfileListScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.headerNav}>
-          <TouchableOpacity onPress={() => router.push('/(tabs)')}>
-            <Text style={styles.backButton}>← 홈</Text>
-          </TouchableOpacity>
-        </View>
         <View style={styles.headerTop}>
           <View>
             <Text style={styles.title}>감각 프로파일</Text>
@@ -254,9 +250,11 @@ export default function SensoryProfileListScreen() {
               </View>
             ) : null
           }
-          contentContainerStyle={{ padding: 20 }}
+          contentContainerStyle={{ padding: 20, paddingBottom: 80 }}
         />
       )}
+
+      <FooterNav />
     </View>
   );
 }
@@ -270,14 +268,6 @@ const styles = StyleSheet.create({
     padding: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
-  },
-  headerNav: {
-    marginBottom: 10,
-  },
-  backButton: {
-    fontSize: 16,
-    color: '#007AFF',
-    fontWeight: '500',
   },
   headerTop: {
     flexDirection: 'row',

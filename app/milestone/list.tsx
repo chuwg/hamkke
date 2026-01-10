@@ -11,6 +11,7 @@ import { useRouter } from 'expo-router';
 import { useChild } from '../../contexts/ChildContext';
 import { milestonesApi } from '../../services/database';
 import { Milestone } from '../../types';
+import FooterNav from '../../components/FooterNav';
 
 const CATEGORIES = [
   { id: 'all', name: '전체', icon: '📋' },
@@ -135,11 +136,6 @@ export default function MilestoneListScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.headerNav}>
-          <TouchableOpacity onPress={() => router.push('/(tabs)')}>
-            <Text style={styles.backButton}>← 홈</Text>
-          </TouchableOpacity>
-        </View>
         <View style={styles.headerTop}>
           <View>
             <Text style={styles.title}>발달 마일스톤</Text>
@@ -265,9 +261,11 @@ export default function MilestoneListScreen() {
               </View>
             </View>
           )}
-          contentContainerStyle={{ padding: 20 }}
+          contentContainerStyle={{ padding: 20, paddingBottom: 80 }}
         />
       )}
+
+      <FooterNav />
     </View>
   );
 }
@@ -281,14 +279,6 @@ const styles = StyleSheet.create({
     padding: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
-  },
-  headerNav: {
-    marginBottom: 10,
-  },
-  backButton: {
-    fontSize: 16,
-    color: '#007AFF',
-    fontWeight: '500',
   },
   headerTop: {
     flexDirection: 'row',
