@@ -37,6 +37,13 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="info"
+        options={{
+          title: '정보',
+          headerTitle: '정보 찾기',
+        }}
+      />
+      <Tabs.Screen
         name="profile"
         options={{
           title: '프로필',
