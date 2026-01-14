@@ -7,97 +7,143 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
+  Linking,
+  Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import FooterNav from '../../components/FooterNav';
+import {
+  fetchWelfareCenters,
+  fetchRehabCenters,
+  transformWelfareCenter,
+  transformRehabCenter,
+  Facility,
+} from '../../services/welfareApi';
 
 // 시설 유형
 const FACILITY_TYPES = [
-  { code: 'welfare', name: '장애인복지관', icon: '🏛️' },
-  { code: 'therapy', name: '치료센터', icon: '💊' },
-  { code: 'development', name: '발달센터', icon: '🌱' },
-  { code: 'daycare', name: '주간보호센터', icon: '🏠' },
-  { code: 'support', name: '활동지원센터', icon: '🤝' },
+  { code: 'all', name: '전체', icon: '🏛️' },
+  { code: 'welfare', name: '장애인복지관', icon: '🏢' },
+  { code: 'rehab', name: '발달재활센터', icon: '💊' },
 ];
 
-// 목업 데이터 (API 연동 전)
-const MOCK_FACILITIES = [
-  {
-    id: '1',
-    name: '서울시립장애인복지관',
-    type: '장애인복지관',
-    address: '서울특별시 강남구 테헤란로 123',
-    phone: '02-1234-5678',
-    programs: ['언어치료', '작업치료', '행동치료', '미술치료'],
-    hours: '평일 09:00 - 18:00',
-    website: 'https://example.com',
-  },
-  {
-    id: '2',
-    name: '강남아동발달센터',
-    type: '발달센터',
-    address: '서울특별시 강남구 역삼로 456',
-    phone: '02-2345-6789',
-    programs: ['감각통합', 'ABA치료', '언어치료'],
-    hours: '평일 10:00 - 19:00, 토요일 10:00 - 14:00',
-    website: '',
-  },
-  {
-    id: '3',
-    name: '희망치료센터',
-    type: '치료센터',
-    address: '서울특별시 서초구 서초대로 789',
-    phone: '02-3456-7890',
-    programs: ['언어치료', '음악치료', '놀이치료'],
-    hours: '평일 09:00 - 20:00',
-    website: 'https://example2.com',
-  },
-  {
-    id: '4',
-    name: '사랑주간보호센터',
-    type: '주간보호센터',
-    address: '서울특별시 송파구 올림픽로 321',
-    phone: '02-4567-8901',
-    programs: ['일상생활훈련', '사회적응훈련', '여가활동'],
-    hours: '평일 09:00 - 17:00',
-    website: '',
-  },
+// 시도 목록
+const REGIONS = [
+  { code: '', name: '전체 지역' },
+  { code: '서울', name: '서울' },
+  { code: '부산', name: '부산' },
+  { code: '대구', name: '대구' },
+  { code: '인천', name: '인천' },
+  { code: '광주', name: '광주' },
+  { code: '대전', name: '대전' },
+  { code: '울산', name: '울산' },
+  { code: '세종', name: '세종' },
+  { code: '경기', name: '경기' },
+  { code: '강원', name: '강원' },
+  { code: '충북', name: '충북' },
+  { code: '충남', name: '충남' },
+  { code: '전북', name: '전북' },
+  { code: '전남', name: '전남' },
+  { code: '경북', name: '경북' },
+  { code: '경남', name: '경남' },
+  { code: '제주', name: '제주' },
 ];
 
 export default function WelfareSearchScreen() {
   const router = useRouter();
-  const [selectedType, setSelectedType] = useState('');
+  const [selectedType, setSelectedType] = useState('all');
+  const [selectedRegion, setSelectedRegion] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
-  const [facilities, setFacilities] = useState<typeof MOCK_FACILITIES>([]);
+  const [facilities, setFacilities] = useState<Facility[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
+  const [totalCount, setTotalCount] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     setLoading(true);
     setHasSearched(true);
+    setError(null);
 
-    // TODO: 실제 API 호출로 대체
-    setTimeout(() => {
-      let filtered = MOCK_FACILITIES;
-      if (selectedType) {
-        const typeName = FACILITY_TYPES.find(t => t.code === selectedType)?.name;
-        filtered = filtered.filter(f => f.type === typeName);
+    try {
+      let allFacilities: Facility[] = [];
+      let total = 0;
+
+      // 복지관 검색
+      if (selectedType === 'all' || selectedType === 'welfare') {
+        const welfareResult = await fetchWelfareCenters({
+          page: 1,
+          perPage: 50,
+          sido: selectedRegion || undefined,
+        });
+        const welfareFacilities = welfareResult.data.map((item, idx) =>
+          transformWelfareCenter(item, idx)
+        );
+        allFacilities = [...allFacilities, ...welfareFacilities];
+        total += welfareResult.matchCount;
       }
+
+      // 발달재활센터 검색
+      if (selectedType === 'all' || selectedType === 'rehab') {
+        // API의 시도명 형식 맞추기
+        let sidoQuery = selectedRegion;
+        if (selectedRegion === '서울') sidoQuery = '서울특별시';
+        else if (selectedRegion === '부산') sidoQuery = '부산광역시';
+        else if (selectedRegion === '대구') sidoQuery = '대구광역시';
+        else if (selectedRegion === '인천') sidoQuery = '인천광역시';
+        else if (selectedRegion === '광주') sidoQuery = '광주광역시';
+        else if (selectedRegion === '대전') sidoQuery = '대전광역시';
+        else if (selectedRegion === '울산') sidoQuery = '울산광역시';
+        else if (selectedRegion === '세종') sidoQuery = '세종특별자치시';
+        else if (selectedRegion === '경기') sidoQuery = '경기도';
+        else if (selectedRegion === '강원') sidoQuery = '강원특별자치도';
+        else if (selectedRegion === '충북') sidoQuery = '충청북도';
+        else if (selectedRegion === '충남') sidoQuery = '충청남도';
+        else if (selectedRegion === '전북') sidoQuery = '전북특별자치도';
+        else if (selectedRegion === '전남') sidoQuery = '전라남도';
+        else if (selectedRegion === '경북') sidoQuery = '경상북도';
+        else if (selectedRegion === '경남') sidoQuery = '경상남도';
+        else if (selectedRegion === '제주') sidoQuery = '제주특별자치도';
+
+        const rehabResult = await fetchRehabCenters({
+          page: 1,
+          perPage: 50,
+          sido: sidoQuery || undefined,
+        });
+        const rehabFacilities = rehabResult.data.map((item, idx) =>
+          transformRehabCenter(item, idx)
+        );
+        allFacilities = [...allFacilities, ...rehabFacilities];
+        total += rehabResult.matchCount;
+      }
+
+      // 검색어 필터링
       if (searchQuery) {
-        filtered = filtered.filter(f =>
-          f.name.includes(searchQuery) ||
-          f.address.includes(searchQuery) ||
-          f.programs.some(p => p.includes(searchQuery))
+        allFacilities = allFacilities.filter(
+          (f) =>
+            f.name.includes(searchQuery) ||
+            f.address.includes(searchQuery) ||
+            f.sigungu.includes(searchQuery)
         );
       }
-      setFacilities(filtered);
+
+      setFacilities(allFacilities);
+      setTotalCount(total);
+    } catch (err) {
+      console.error('검색 오류:', err);
+      setError('데이터를 불러오는 중 오류가 발생했습니다.');
+      setFacilities([]);
+    } finally {
       setLoading(false);
-    }, 500);
+    }
   };
 
   const handleCall = (phone: string) => {
-    if (typeof window !== 'undefined') {
-      window.open(`tel:${phone}`, '_self');
+    const phoneNumber = phone.replace(/[^0-9-]/g, '');
+    if (Platform.OS === 'web') {
+      window.open(`tel:${phoneNumber}`, '_self');
+    } else {
+      Linking.openURL(`tel:${phoneNumber}`);
     }
   };
 
@@ -108,7 +154,7 @@ export default function WelfareSearchScreen() {
         <View style={styles.header}>
           <Text style={styles.title}>복지시설 찾기</Text>
           <Text style={styles.subtitle}>
-            복지관, 치료센터, 발달센터를 검색하세요
+            장애인복지관, 발달재활센터를 검색하세요
           </Text>
         </View>
 
@@ -125,17 +171,47 @@ export default function WelfareSearchScreen() {
                 key={type.code}
                 style={[
                   styles.typeButton,
-                  selectedType === type.code && styles.typeButtonSelected
+                  selectedType === type.code && styles.typeButtonSelected,
                 ]}
-                onPress={() => setSelectedType(
-                  selectedType === type.code ? '' : type.code
-                )}
+                onPress={() => setSelectedType(type.code)}
               >
                 <Text style={styles.typeIcon}>{type.icon}</Text>
-                <Text style={[
-                  styles.typeText,
-                  selectedType === type.code && styles.typeTextSelected
-                ]}>{type.name}</Text>
+                <Text
+                  style={[
+                    styles.typeText,
+                    selectedType === type.code && styles.typeTextSelected,
+                  ]}
+                >
+                  {type.name}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+
+          {/* 지역 선택 */}
+          <Text style={styles.filterLabel}>지역</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.regionScroll}
+          >
+            {REGIONS.map((region) => (
+              <TouchableOpacity
+                key={region.code}
+                style={[
+                  styles.regionButton,
+                  selectedRegion === region.code && styles.regionButtonSelected,
+                ]}
+                onPress={() => setSelectedRegion(region.code)}
+              >
+                <Text
+                  style={[
+                    styles.regionText,
+                    selectedRegion === region.code && styles.regionTextSelected,
+                  ]}
+                >
+                  {region.name}
+                </Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -144,7 +220,7 @@ export default function WelfareSearchScreen() {
           <View style={styles.searchRow}>
             <TextInput
               style={styles.searchInput}
-              placeholder="시설명, 주소, 프로그램 검색"
+              placeholder="시설명, 주소 검색"
               value={searchQuery}
               onChangeText={setSearchQuery}
               placeholderTextColor="#999"
@@ -157,72 +233,78 @@ export default function WelfareSearchScreen() {
 
         {/* 안내 */}
         <View style={styles.tipBox}>
-          <Text style={styles.tipIcon}>💡</Text>
+          <Text style={styles.tipIcon}>📡</Text>
           <Text style={styles.tipText}>
-            공공데이터 API 연동 후 전국 복지시설 정보를 검색할 수 있습니다.
-            현재는 예시 데이터가 표시됩니다.
+            공공데이터포털 API를 통해 실시간 정보를 제공합니다.
+            {'\n'}장애인복지관 {266}개, 발달재활센터 {2746}개 등록
           </Text>
         </View>
 
         {/* 검색 결과 */}
         {loading ? (
-          <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 40 }} />
+          <ActivityIndicator
+            size="large"
+            color="#007AFF"
+            style={{ marginTop: 40 }}
+          />
+        ) : error ? (
+          <View style={styles.errorBox}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
         ) : hasSearched ? (
           <View style={styles.resultsSection}>
             <Text style={styles.resultsTitle}>
               검색 결과 ({facilities.length}개)
+              {totalCount > 50 && (
+                <Text style={styles.resultsSub}> / 전체 {totalCount}개</Text>
+              )}
             </Text>
             {facilities.length === 0 ? (
               <View style={styles.emptyResult}>
-                <Text style={styles.emptyResultText}>
-                  검색 결과가 없습니다
-                </Text>
+                <Text style={styles.emptyResultText}>검색 결과가 없습니다</Text>
               </View>
             ) : (
               facilities.map((facility) => (
                 <View key={facility.id} style={styles.facilityCard}>
                   <View style={styles.facilityHeader}>
                     <Text style={styles.facilityName}>{facility.name}</Text>
-                    <View style={styles.facilityTypeBadge}>
-                      <Text style={styles.facilityTypeText}>{facility.type}</Text>
+                    <View
+                      style={[
+                        styles.facilityTypeBadge,
+                        facility.type === '발달재활' && styles.rehabBadge,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.facilityTypeText,
+                          facility.type === '발달재활' && styles.rehabText,
+                        ]}
+                      >
+                        {facility.type}
+                      </Text>
                     </View>
                   </View>
 
-                  <Text style={styles.facilityAddress}>{facility.address}</Text>
-                  <Text style={styles.facilityHours}>{facility.hours}</Text>
-
-                  {/* 프로그램 */}
-                  <View style={styles.programsContainer}>
-                    {facility.programs.map((program, idx) => (
-                      <View key={idx} style={styles.programBadge}>
-                        <Text style={styles.programText}>{program}</Text>
-                      </View>
-                    ))}
-                  </View>
+                  <Text style={styles.facilityAddress}>
+                    {facility.sido} {facility.sigungu}
+                  </Text>
+                  <Text style={styles.facilityAddressDetail}>
+                    {facility.address}
+                  </Text>
 
                   {/* 액션 버튼 */}
-                  <View style={styles.facilityActions}>
-                    <TouchableOpacity
-                      style={styles.actionBtn}
-                      onPress={() => handleCall(facility.phone)}
-                    >
-                      <Text style={styles.actionBtnText}>📞 전화</Text>
-                    </TouchableOpacity>
-                    {facility.website && (
+                  {facility.phone && (
+                    <View style={styles.facilityActions}>
                       <TouchableOpacity
-                        style={[styles.actionBtn, styles.actionBtnOutline]}
-                        onPress={() => {
-                          if (typeof window !== 'undefined') {
-                            window.open(facility.website, '_blank');
-                          }
-                        }}
+                        style={styles.actionBtn}
+                        onPress={() => handleCall(facility.phone!)}
                       >
-                        <Text style={[styles.actionBtnText, styles.actionBtnTextOutline]}>
-                          🌐 홈페이지
+                        <Text style={styles.actionBtnText}>
+                          📞 {facility.phone}
                         </Text>
                       </TouchableOpacity>
-                    )}
-                  </View>
+                    </View>
+                  )}
                 </View>
               ))
             )}
@@ -231,7 +313,7 @@ export default function WelfareSearchScreen() {
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateIcon}>🏛️</Text>
             <Text style={styles.emptyStateText}>
-              시설 유형을 선택하거나{'\n'}검색어를 입력해주세요
+              시설 유형과 지역을 선택하고{'\n'}검색 버튼을 눌러주세요
             </Text>
           </View>
         )}
@@ -305,6 +387,29 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
   },
+  regionScroll: {
+    marginBottom: 16,
+  },
+  regionButton: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 16,
+    marginRight: 8,
+  },
+  regionButtonSelected: {
+    backgroundColor: '#E3F2FD',
+    borderWidth: 1,
+    borderColor: '#007AFF',
+  },
+  regionText: {
+    fontSize: 13,
+    color: '#666',
+  },
+  regionTextSelected: {
+    color: '#007AFF',
+    fontWeight: '600',
+  },
   searchRow: {
     flexDirection: 'row',
     gap: 10,
@@ -330,7 +435,7 @@ const styles = StyleSheet.create({
   },
   tipBox: {
     flexDirection: 'row',
-    backgroundColor: '#FFF9E6',
+    backgroundColor: '#E8F5E9',
     margin: 16,
     padding: 12,
     borderRadius: 8,
@@ -343,8 +448,19 @@ const styles = StyleSheet.create({
   tipText: {
     flex: 1,
     fontSize: 13,
-    color: '#856404',
+    color: '#2E7D32',
     lineHeight: 18,
+  },
+  errorBox: {
+    margin: 16,
+    padding: 16,
+    backgroundColor: '#FFEBEE',
+    borderRadius: 8,
+  },
+  errorText: {
+    color: '#C62828',
+    fontSize: 14,
+    textAlign: 'center',
   },
   resultsSection: {
     padding: 16,
@@ -354,6 +470,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#333',
     marginBottom: 12,
+  },
+  resultsSub: {
+    fontSize: 13,
+    fontWeight: '400',
+    color: '#999',
   },
   facilityCard: {
     backgroundColor: '#fff',
@@ -368,10 +489,11 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   facilityName: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: 'bold',
     color: '#333',
     flex: 1,
+    marginRight: 8,
   },
   facilityTypeBadge: {
     backgroundColor: '#E3F2FD',
@@ -379,36 +501,26 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 4,
   },
+  rehabBadge: {
+    backgroundColor: '#FFF3E0',
+  },
   facilityTypeText: {
     fontSize: 12,
     color: '#1976D2',
     fontWeight: '600',
   },
+  rehabText: {
+    color: '#E65100',
+  },
   facilityAddress: {
+    fontSize: 13,
+    color: '#007AFF',
+    marginBottom: 2,
+  },
+  facilityAddressDetail: {
     fontSize: 14,
     color: '#666',
-    marginBottom: 4,
-  },
-  facilityHours: {
-    fontSize: 13,
-    color: '#999',
     marginBottom: 12,
-  },
-  programsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 16,
-  },
-  programBadge: {
-    backgroundColor: '#f5f5f5',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 4,
-  },
-  programText: {
-    fontSize: 12,
-    color: '#666',
   },
   facilityActions: {
     flexDirection: 'row',
@@ -421,18 +533,10 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
   },
-  actionBtnOutline: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#007AFF',
-  },
   actionBtnText: {
     fontSize: 14,
     fontWeight: '600',
     color: '#fff',
-  },
-  actionBtnTextOutline: {
-    color: '#007AFF',
   },
   emptyState: {
     alignItems: 'center',
