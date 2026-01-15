@@ -10,6 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
+import FooterNav from '../../components/FooterNav';
 import {
   fetchSpecialClassSchools,
   SIDO_CODES,
@@ -123,6 +124,7 @@ export default function SchoolScreen() {
   const totalPages = Math.ceil(schools.length / itemsPerPage);
 
   return (
+    <View style={styles.wrapper}>
     <ScrollView style={styles.container}>
       <View style={styles.content}>
         {/* 헤더 */}
@@ -389,10 +391,16 @@ export default function SchoolScreen() {
         </View>
       </View>
     </ScrollView>
+    <FooterNav />
+  </View>
   );
 }
 
 const styles = StyleSheet.create({
+  wrapper: {
+    flex: 1,
+    backgroundColor: '#F8F9FA',
+  },
   container: {
     flex: 1,
     backgroundColor: '#F8F9FA',
