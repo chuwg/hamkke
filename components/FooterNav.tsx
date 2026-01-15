@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter, usePathname } from 'expo-router';
+import { useTheme } from '../contexts/ThemeContext';
 
 const NAV_ITEMS = [
   { path: '/(tabs)', label: '홈', icon: '🏠' },
@@ -13,6 +14,7 @@ const NAV_ITEMS = [
 export default function FooterNav() {
   const router = useRouter();
   const pathname = usePathname();
+  const { theme } = useTheme();
 
   const isActive = (path: string) => {
     if (path === '/(tabs)') {
@@ -22,7 +24,7 @@ export default function FooterNav() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.tabBar, borderTopColor: theme.colors.tabBarBorder }]}>
       {NAV_ITEMS.map((item) => (
         <TouchableOpacity
           key={item.path}
@@ -32,7 +34,8 @@ export default function FooterNav() {
           <Text style={styles.navIcon}>{item.icon}</Text>
           <Text style={[
             styles.navLabel,
-            isActive(item.path) && styles.navLabelActive
+            { color: theme.colors.tabInactive },
+            isActive(item.path) && { color: theme.colors.tabActive, fontWeight: '600' }
           ]}>
             {item.label}
           </Text>
@@ -63,9 +66,5 @@ const styles = StyleSheet.create({
   navLabel: {
     fontSize: 11,
     color: '#999',
-  },
-  navLabelActive: {
-    color: '#007AFF',
-    fontWeight: '600',
   },
 });

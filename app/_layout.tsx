@@ -3,6 +3,7 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { ChildProvider } from '../contexts/ChildContext';
+import { ThemeProvider } from '../contexts/ThemeContext';
 
 function RootLayoutNav() {
   const { user, loading } = useAuth();
@@ -34,11 +35,13 @@ function RootLayoutNav() {
 export default function RootLayout() {
   return (
     <SafeAreaProvider>
-      <AuthProvider>
-        <ChildProvider>
-          <RootLayoutNav />
-        </ChildProvider>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <ChildProvider>
+            <RootLayoutNav />
+          </ChildProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }

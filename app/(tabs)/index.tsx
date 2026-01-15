@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useChild } from '../../contexts/ChildContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { schedulesApi } from '../../services/database';
 import { Schedule, RecurrenceRule } from '../../types';
 
@@ -59,10 +60,39 @@ function expandRecurringSchedules(schedules: Schedule[], startDate: Date, endDat
 
 export default function HomeScreen() {
   const { selectedChild } = useChild();
+  const { theme } = useTheme();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
+
+  const dynamicStyles = {
+    container: { backgroundColor: theme.colors.background },
+    header: { backgroundColor: theme.colors.surface, borderBottomColor: theme.colors.border },
+    greeting: { color: theme.colors.textSecondary },
+    childName: { color: theme.colors.text },
+    dateText: { color: theme.colors.text },
+    dayText: { color: theme.colors.textSecondary },
+    statCard: { backgroundColor: theme.colors.card },
+    statNumber: { color: theme.colors.accent },
+    statLabel: { color: theme.colors.textSecondary },
+    actionButton: { backgroundColor: theme.colors.primary },
+    sectionTitle: { color: theme.colors.text },
+    emptySection: { backgroundColor: theme.colors.card },
+    emptySectionText: { color: theme.colors.textMuted },
+    scheduleCard: { backgroundColor: theme.colors.card },
+    scheduleTimeText: { color: theme.colors.accent },
+    scheduleTitle: { color: theme.colors.text },
+    scheduleDescription: { color: theme.colors.textSecondary },
+    upcomingCard: { backgroundColor: theme.colors.card },
+    upcomingDateText: { color: theme.colors.text },
+    upcomingDayText: { color: theme.colors.textSecondary },
+    upcomingTitle: { color: theme.colors.text },
+    upcomingTime: { color: theme.colors.accent },
+    emptyTitle: { color: theme.colors.text },
+    emptyText: { color: theme.colors.textSecondary },
+    emptyButton: { backgroundColor: theme.colors.accent },
+  };
 
   useEffect(() => {
     if (selectedChild) {
@@ -145,15 +175,15 @@ export default function HomeScreen() {
 
   if (!selectedChild) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, dynamicStyles.container]}>
         <View style={styles.emptyState}>
-          <Text style={styles.emptyTitle}>환영합니다! 👋</Text>
-          <Text style={styles.emptyText}>
+          <Text style={[styles.emptyTitle, dynamicStyles.emptyTitle]}>환영합니다! 👋</Text>
+          <Text style={[styles.emptyText, dynamicStyles.emptyText]}>
             프로필 탭에서 자녀를 선택하거나{'\n'}
             새로운 자녀 프로필을 추가해주세요
           </Text>
           <TouchableOpacity
-            style={styles.emptyButton}
+            style={[styles.emptyButton, dynamicStyles.emptyButton]}
             onPress={() => router.push('/profile')}
           >
             <Text style={styles.emptyButtonText}>프로필 설정하기</Text>
@@ -165,78 +195,78 @@ export default function HomeScreen() {
 
   return (
     <ScrollView
-      style={styles.container}
+      style={[styles.container, dynamicStyles.container]}
       refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.colors.primary} />
       }
     >
       {/* 헤더 */}
-      <View style={styles.header}>
+      <View style={[styles.header, dynamicStyles.header]}>
         <View>
-          <Text style={styles.greeting}>안녕하세요 👋</Text>
-          <Text style={styles.childName}>{selectedChild.name}의 하루</Text>
+          <Text style={[styles.greeting, dynamicStyles.greeting]}>안녕하세요 👋</Text>
+          <Text style={[styles.childName, dynamicStyles.childName]}>{selectedChild.name}의 하루</Text>
         </View>
         <View style={styles.dateContainer}>
-          <Text style={styles.dateText}>{formatDate(todayStr)}</Text>
-          <Text style={styles.dayText}>{getDayName(todayStr)}요일</Text>
+          <Text style={[styles.dateText, dynamicStyles.dateText]}>{formatDate(todayStr)}</Text>
+          <Text style={[styles.dayText, dynamicStyles.dayText]}>{getDayName(todayStr)}요일</Text>
         </View>
       </View>
 
       {/* 통계 카드 */}
       <View style={styles.statsContainer}>
-        <View style={styles.statCard}>
-          <Text style={styles.statNumber}>{todaySchedules.length}</Text>
-          <Text style={styles.statLabel}>오늘 일정</Text>
+        <View style={[styles.statCard, dynamicStyles.statCard]}>
+          <Text style={[styles.statNumber, dynamicStyles.statNumber]}>{todaySchedules.length}</Text>
+          <Text style={[styles.statLabel, dynamicStyles.statLabel]}>오늘 일정</Text>
         </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statNumber}>{thisWeekCount}</Text>
-          <Text style={styles.statLabel}>이번 주</Text>
+        <View style={[styles.statCard, dynamicStyles.statCard]}>
+          <Text style={[styles.statNumber, dynamicStyles.statNumber]}>{thisWeekCount}</Text>
+          <Text style={[styles.statLabel, dynamicStyles.statLabel]}>이번 주</Text>
         </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statNumber}>{upcomingSchedules.length}</Text>
-          <Text style={styles.statLabel}>다가오는 일정</Text>
+        <View style={[styles.statCard, dynamicStyles.statCard]}>
+          <Text style={[styles.statNumber, dynamicStyles.statNumber]}>{upcomingSchedules.length}</Text>
+          <Text style={[styles.statLabel, dynamicStyles.statLabel]}>다가오는 일정</Text>
         </View>
       </View>
 
       {/* 빠른 액션 */}
       <View style={styles.quickActions}>
         <TouchableOpacity
-          style={styles.actionButton}
+          style={[styles.actionButton, dynamicStyles.actionButton]}
           onPress={() => router.push('/schedule/add')}
         >
           <Text style={styles.actionIcon}>📅</Text>
           <Text style={styles.actionText}>일정 추가</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={styles.actionButton}
+          style={[styles.actionButton, dynamicStyles.actionButton]}
           onPress={() => router.push('/(tabs)/records')}
         >
           <Text style={styles.actionIcon}>💊</Text>
           <Text style={styles.actionText}>치료 기록</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={styles.actionButton}
+          style={[styles.actionButton, dynamicStyles.actionButton]}
           onPress={() => router.push('/milestone/list')}
         >
           <Text style={styles.actionIcon}>🎯</Text>
           <Text style={styles.actionText}>마일스톤</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={styles.actionButton}
+          style={[styles.actionButton, dynamicStyles.actionButton]}
           onPress={() => router.push('/sensory/list')}
         >
           <Text style={styles.actionIcon}>🌈</Text>
           <Text style={styles.actionText}>감각 평가</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={styles.actionButton}
+          style={[styles.actionButton, dynamicStyles.actionButton]}
           onPress={() => router.push('/(tabs)/schedule')}
         >
           <Text style={styles.actionIcon}>📋</Text>
           <Text style={styles.actionText}>전체 일정</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={styles.actionButton}
+          style={[styles.actionButton, dynamicStyles.actionButton]}
           onPress={() => router.push('/(tabs)/profile')}
         >
           <Text style={styles.actionIcon}>👤</Text>
@@ -246,32 +276,32 @@ export default function HomeScreen() {
 
       {/* 오늘의 일정 */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>오늘의 일정</Text>
+        <Text style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>오늘의 일정</Text>
         {loading ? (
-          <ActivityIndicator size="small" color="#007AFF" style={{ marginTop: 10 }} />
+          <ActivityIndicator size="small" color={theme.colors.accent} style={{ marginTop: 10 }} />
         ) : todaySchedules.length === 0 ? (
-          <View style={styles.emptySection}>
-            <Text style={styles.emptySectionText}>오늘은 등록된 일정이 없습니다</Text>
+          <View style={[styles.emptySection, dynamicStyles.emptySection]}>
+            <Text style={[styles.emptySectionText, dynamicStyles.emptySectionText]}>오늘은 등록된 일정이 없습니다</Text>
           </View>
         ) : (
           todaySchedules.map((schedule, index) => (
             <TouchableOpacity
               key={`${schedule.id}-${schedule.start_time}-${index}`}
-              style={styles.scheduleCard}
+              style={[styles.scheduleCard, dynamicStyles.scheduleCard]}
               onPress={() => router.push(`/schedule/edit/${schedule.id}`)}
             >
               <View style={styles.scheduleTime}>
-                <Text style={styles.scheduleTimeText}>{formatTime(schedule.start_time)}</Text>
+                <Text style={[styles.scheduleTimeText, dynamicStyles.scheduleTimeText]}>{formatTime(schedule.start_time)}</Text>
               </View>
               <View style={styles.scheduleContent}>
-                <Text style={styles.scheduleTitle}>{schedule.title}</Text>
+                <Text style={[styles.scheduleTitle, dynamicStyles.scheduleTitle]}>{schedule.title}</Text>
                 {schedule.description && (
-                  <Text style={styles.scheduleDescription} numberOfLines={1}>
+                  <Text style={[styles.scheduleDescription, dynamicStyles.scheduleDescription]} numberOfLines={1}>
                     {schedule.description}
                   </Text>
                 )}
                 {schedule.reminder_minutes && (
-                  <Text style={styles.scheduleReminder}>
+                  <Text style={[styles.scheduleReminder, { color: theme.colors.warning }]}>
                     ⏰ {schedule.reminder_minutes}분 전 알림
                   </Text>
                 )}
@@ -284,24 +314,24 @@ export default function HomeScreen() {
       {/* 다가오는 일정 */}
       {upcomingSchedules.length > 0 && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>다가오는 일정</Text>
+          <Text style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>다가오는 일정</Text>
           {upcomingSchedules.map((schedule, index) => (
             <TouchableOpacity
               key={`${schedule.id}-${schedule.start_time}-${index}`}
-              style={styles.upcomingCard}
+              style={[styles.upcomingCard, dynamicStyles.upcomingCard]}
               onPress={() => router.push(`/schedule/edit/${schedule.id}`)}
             >
               <View style={styles.upcomingDate}>
-                <Text style={styles.upcomingDateText}>
+                <Text style={[styles.upcomingDateText, dynamicStyles.upcomingDateText]}>
                   {formatDate(schedule.start_time)}
                 </Text>
-                <Text style={styles.upcomingDayText}>
+                <Text style={[styles.upcomingDayText, dynamicStyles.upcomingDayText]}>
                   {getDayName(schedule.start_time)}
                 </Text>
               </View>
               <View style={styles.upcomingContent}>
-                <Text style={styles.upcomingTitle}>{schedule.title}</Text>
-                <Text style={styles.upcomingTime}>{formatTime(schedule.start_time)}</Text>
+                <Text style={[styles.upcomingTitle, dynamicStyles.upcomingTitle]}>{schedule.title}</Text>
+                <Text style={[styles.upcomingTime, dynamicStyles.upcomingTime]}>{formatTime(schedule.start_time)}</Text>
               </View>
             </TouchableOpacity>
           ))}
