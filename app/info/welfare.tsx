@@ -59,11 +59,14 @@ export default function WelfareSearchScreen() {
   const [hasSearched, setHasSearched] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const handleSearch = async () => {
     setLoading(true);
     setHasSearched(true);
     setError(null);
+    setCurrentPage(1);
 
     try {
       let allFacilities: Facility[] = [];
@@ -254,17 +257,20 @@ export default function WelfareSearchScreen() {
         ) : hasSearched ? (
           <View style={styles.resultsSection}>
             <Text style={styles.resultsTitle}>
-              검색 결과 ({facilities.length}개)
-              {totalCount > 50 && (
-                <Text style={styles.resultsSub}> / 전체 {totalCount}개</Text>
-              )}
+              검색 결과 (전체 {facilities.length}개)
+            </Text>
+            <Text style={styles.pageInfo}>
+              {currentPage} / {Math.ceil(facilities.length / itemsPerPage)} 페이지
             </Text>
             {facilities.length === 0 ? (
               <View style={styles.emptyResult}>
                 <Text style={styles.emptyResultText}>검색 결과가 없습니다</Text>
               </View>
             ) : (
-              facilities.map((facility) => (
+              <>
+              {facilities
+                .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                .map((facility) => (
                 <View key={facility.id} style={styles.facilityCard}>
                   <View style={styles.facilityHeader}>
                     <Text style={styles.facilityName}>{facility.name}</Text>
@@ -306,7 +312,31 @@ export default function WelfareSearchScreen() {
                     </View>
                   )}
                 </View>
-              ))
+              ))}
+
+              {/* 페이지네이션 */}
+              <View style={styles.pagination}>
+                <TouchableOpacity
+                  style={[styles.pageBtn, currentPage === 1 && styles.pageBtnDisabled]}
+                  onPress={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  <Text style={[styles.pageBtnText, currentPage === 1 && styles.pageBtnTextDisabled]}>
+                    ◀ 이전
+                  </Text>
+                </TouchableOpacity>
+                <Text style={styles.pageNumber}>{currentPage}</Text>
+                <TouchableOpacity
+                  style={[styles.pageBtn, currentPage >= Math.ceil(facilities.length / itemsPerPage) && styles.pageBtnDisabled]}
+                  onPress={() => currentPage < Math.ceil(facilities.length / itemsPerPage) && setCurrentPage(currentPage + 1)}
+                  disabled={currentPage >= Math.ceil(facilities.length / itemsPerPage)}
+                >
+                  <Text style={[styles.pageBtnText, currentPage >= Math.ceil(facilities.length / itemsPerPage) && styles.pageBtnTextDisabled]}>
+                    다음 ▶
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              </>
             )}
           </View>
         ) : (
@@ -559,5 +589,41 @@ const styles = StyleSheet.create({
   emptyResultText: {
     fontSize: 16,
     color: '#999',
+  },
+  pageInfo: {
+    fontSize: 13,
+    color: '#666',
+    marginBottom: 12,
+  },
+  pagination: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 16,
+    gap: 16,
+  },
+  pageBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: '#007AFF',
+    borderRadius: 8,
+  },
+  pageBtnDisabled: {
+    backgroundColor: '#E0E0E0',
+  },
+  pageBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  pageBtnTextDisabled: {
+    color: '#999',
+  },
+  pageNumber: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    minWidth: 40,
+    textAlign: 'center',
   },
 });

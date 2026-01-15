@@ -1,51 +1,64 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  TextInput,
   ActivityIndicator,
   Linking,
   Platform,
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import FooterNav from '../../components/FooterNav';
+import { Picker } from '@react-native-picker/picker';
 import {
-  fetchSchools,
-  REGION_CODES,
-  SCHOOL_TYPES,
-  School,
-} from '../../services/schoolApi';
+  fetchSpecialClassSchools,
+  SIDO_CODES,
+  SCHOOL_LEVEL_CODES,
+  getSggCodes,
+  SpecialClassSchool,
+} from '../../services/schoolInfoApi';
 
-export default function SchoolSearchScreen() {
-  const router = useRouter();
-  const [selectedRegion, setSelectedRegion] = useState('');
-  const [selectedType, setSelectedType] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
+export default function SchoolScreen() {
+  const [selectedSido, setSelectedSido] = useState('');
+  const [selectedSgg, setSelectedSgg] = useState('');
+  const [selectedLevel, setSelectedLevel] = useState('');
   const [loading, setLoading] = useState(false);
-  const [schools, setSchools] = useState<School[]>([]);
+  const [schools, setSchools] = useState<SpecialClassSchool[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
-  const [totalCount, setTotalCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const sggCodes = getSggCodes(selectedSido);
+
+  const handleSidoChange = (value: string) => {
+    setSelectedSido(value);
+    setSelectedSgg('');
+  };
 
   const handleSearch = async () => {
+    if (!selectedSido) {
+      setError('시/도를 선택해주세요.');
+      return;
+    }
+    if (!selectedSgg) {
+      setError('시/군/구를 선택해주세요.');
+      return;
+    }
+
     setLoading(true);
     setHasSearched(true);
     setError(null);
+    setCurrentPage(1);
 
     try {
-      const result = await fetchSchools({
-        page: 1,
-        perPage: 50,
-        regionCode: selectedRegion || undefined,
-        schoolType: selectedType || undefined,
-        schoolName: searchQuery || undefined,
+      const result = await fetchSpecialClassSchools({
+        sidoCode: selectedSido,
+        sggCode: selectedSgg,
+        schulKndCode: selectedLevel || undefined,
       });
 
       setSchools(result.schools);
-      setTotalCount(result.totalCount);
     } catch (err) {
       console.error('검색 오류:', err);
       setError('데이터를 불러오는 중 오류가 발생했습니다.');
@@ -65,127 +78,140 @@ export default function SchoolSearchScreen() {
   };
 
   const handleWebsite = (url: string) => {
-    if (!url) return;
-    const fullUrl = url.startsWith('http') ? url : `http://${url}`;
+    let website = url;
+    if (!website.startsWith('http')) {
+      website = `https://${website}`;
+    }
     if (Platform.OS === 'web') {
-      window.open(fullUrl, '_blank');
+      window.open(website, '_blank');
     } else {
-      Linking.openURL(fullUrl);
+      Linking.openURL(website);
     }
   };
 
-  const getSchoolTypeStyle = (type: string) => {
-    if (type === '특수학교') return styles.specialSchoolBadge;
-    if (type === '초등학교') return styles.elementaryBadge;
-    if (type === '중학교') return styles.middleBadge;
-    if (type === '고등학교') return styles.highBadge;
-    return {};
+  const getLevelBadgeStyle = (level: string) => {
+    switch (level) {
+      case '02':
+        return { backgroundColor: '#E3F2FD' };
+      case '03':
+        return { backgroundColor: '#E8F5E9' };
+      case '04':
+        return { backgroundColor: '#FFF3E0' };
+      default:
+        return { backgroundColor: '#F5F5F5' };
+    }
   };
 
-  const getSchoolTypeTextStyle = (type: string) => {
-    if (type === '특수학교') return styles.specialSchoolText;
-    if (type === '초등학교') return styles.elementaryText;
-    if (type === '중학교') return styles.middleText;
-    if (type === '고등학교') return styles.highText;
-    return {};
+  const getLevelTextStyle = (level: string) => {
+    switch (level) {
+      case '02':
+        return { color: '#1976D2' };
+      case '03':
+        return { color: '#388E3C' };
+      case '04':
+        return { color: '#F57C00' };
+      default:
+        return { color: '#666' };
+    }
   };
+
+  // 현재 페이지에 표시할 학교 목록
+  const paginatedSchools = schools.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+  const totalPages = Math.ceil(schools.length / itemsPerPage);
 
   return (
-    <View style={styles.container}>
-      <ScrollView style={styles.content}>
+    <ScrollView style={styles.container}>
+      <View style={styles.content}>
         {/* 헤더 */}
         <View style={styles.header}>
-          <Text style={styles.title}>학교 정보 검색</Text>
+          <Text style={styles.title}>특수학급 설치 학교</Text>
           <Text style={styles.subtitle}>
-            전국 초중고, 특수학교 정보를 검색하세요
+            우리 지역의 특수학급이 있는 학교를 찾아보세요
           </Text>
         </View>
 
-        {/* 필터 */}
+        {/* 안내 박스 */}
+        <View style={styles.infoBox}>
+          <Text style={styles.infoTitle}>특수학급이란?</Text>
+          <Text style={styles.infoText}>
+            일반학교에서 특수교육대상자에게 통합교육을 실시하기 위해 설치된 학급입니다.
+            특수학급에서는 개별화교육계획에 따라 맞춤형 교육을 받을 수 있습니다.
+          </Text>
+        </View>
+
+        {/* 검색 필터 */}
         <View style={styles.filterSection}>
-          {/* 지역 선택 */}
-          <Text style={styles.filterLabel}>지역</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.regionScroll}
-          >
-            {REGION_CODES.map((region) => (
-              <TouchableOpacity
-                key={region.code}
-                style={[
-                  styles.regionButton,
-                  selectedRegion === region.code && styles.regionButtonSelected,
-                ]}
-                onPress={() => setSelectedRegion(region.code)}
-              >
-                <Text
-                  style={[
-                    styles.regionText,
-                    selectedRegion === region.code && styles.regionTextSelected,
-                  ]}
-                >
-                  {region.name.replace('특별시', '').replace('광역시', '').replace('특별자치시', '').replace('특별자치도', '').replace('도', '')}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+          <Text style={styles.filterTitle}>지역 선택</Text>
 
-          {/* 학교 유형 */}
-          <Text style={styles.filterLabel}>학교 유형</Text>
-          <View style={styles.typeButtons}>
-            {SCHOOL_TYPES.map((type) => (
-              <TouchableOpacity
-                key={type.code}
-                style={[
-                  styles.typeButton,
-                  selectedType === type.code && styles.typeButtonSelected,
-                ]}
-                onPress={() => setSelectedType(type.code)}
+          {/* 시/도 선택 */}
+          <View style={styles.pickerContainer}>
+            <Text style={styles.pickerLabel}>시/도 *</Text>
+            <View style={styles.pickerWrapper}>
+              <Picker
+                selectedValue={selectedSido}
+                onValueChange={handleSidoChange}
+                style={styles.picker}
               >
-                <Text
-                  style={[
-                    styles.typeButtonText,
-                    selectedType === type.code && styles.typeButtonTextSelected,
-                  ]}
-                >
-                  {type.name}
-                </Text>
-              </TouchableOpacity>
-            ))}
+                <Picker.Item label="시/도 선택" value="" />
+                {SIDO_CODES.filter((s) => s.code !== '').map((sido) => (
+                  <Picker.Item key={sido.code} label={sido.name} value={sido.code} />
+                ))}
+              </Picker>
+            </View>
           </View>
 
-          {/* 검색어 */}
-          <View style={styles.searchRow}>
-            <TextInput
-              style={styles.searchInput}
-              placeholder="학교명 검색"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              placeholderTextColor="#999"
-            />
-            <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
-              <Text style={styles.searchButtonText}>검색</Text>
-            </TouchableOpacity>
+          {/* 시/군/구 선택 */}
+          <View style={styles.pickerContainer}>
+            <Text style={styles.pickerLabel}>시/군/구 *</Text>
+            <View style={styles.pickerWrapper}>
+              <Picker
+                selectedValue={selectedSgg}
+                onValueChange={setSelectedSgg}
+                style={styles.picker}
+                enabled={sggCodes.length > 0}
+              >
+                <Picker.Item
+                  label={sggCodes.length > 0 ? '시/군/구 선택' : '시/도를 먼저 선택하세요'}
+                  value=""
+                />
+                {sggCodes.map((sgg) => (
+                  <Picker.Item key={sgg.code} label={sgg.name} value={sgg.code} />
+                ))}
+              </Picker>
+            </View>
           </View>
+
+          {/* 학교급 선택 */}
+          <View style={styles.pickerContainer}>
+            <Text style={styles.pickerLabel}>학교급</Text>
+            <View style={styles.pickerWrapper}>
+              <Picker
+                selectedValue={selectedLevel}
+                onValueChange={setSelectedLevel}
+                style={styles.picker}
+              >
+                {SCHOOL_LEVEL_CODES.map((level) => (
+                  <Picker.Item key={level.code} label={level.name} value={level.code} />
+                ))}
+              </Picker>
+            </View>
+          </View>
+
+          {/* 검색 버튼 */}
+          <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
+            <Text style={styles.searchButtonText}>특수학급 학교 검색</Text>
+          </TouchableOpacity>
         </View>
 
-        {/* 안내 */}
-        <View style={styles.tipBox}>
-          <Text style={styles.tipIcon}>📡</Text>
-          <Text style={styles.tipText}>
-            NEIS 교육정보 개방 포털 API를 통해 실시간 정보를 제공합니다.
-            {'\n'}전국 초중고 및 특수학교 정보 검색 가능
-          </Text>
-        </View>
-
-        {/* 검색 결과 */}
+        {/* 결과 영역 */}
         {loading ? (
-          <ActivityIndicator
-            size="large"
-            color="#007AFF"
-            style={{ marginTop: 40 }}
-          />
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#007AFF" />
+            <Text style={styles.loadingText}>검색 중...</Text>
+          </View>
         ) : error ? (
           <View style={styles.errorBox}>
             <Text style={styles.errorText}>{error}</Text>
@@ -193,289 +219,360 @@ export default function SchoolSearchScreen() {
         ) : hasSearched ? (
           <View style={styles.resultsSection}>
             <Text style={styles.resultsTitle}>
-              검색 결과 ({schools.length}개)
-              {totalCount > 50 && (
-                <Text style={styles.resultsSub}> / 전체 {totalCount}개</Text>
-              )}
+              검색 결과 (전체 {schools.length}개교)
             </Text>
+            {schools.length > 0 && (
+              <Text style={styles.pageInfo}>
+                {currentPage} / {totalPages} 페이지
+              </Text>
+            )}
+
             {schools.length === 0 ? (
               <View style={styles.emptyResult}>
-                <Text style={styles.emptyResultText}>검색 결과가 없습니다</Text>
+                <Text style={styles.emptyResultText}>
+                  해당 지역에 특수학급 설치 학교가 없습니다
+                </Text>
               </View>
             ) : (
-              schools.map((school) => (
-                <View key={school.id} style={styles.schoolCard}>
-                  <View style={styles.schoolHeader}>
-                    <Text style={styles.schoolName}>{school.name}</Text>
-                    <View
+              <>
+                {paginatedSchools.map((school) => (
+                  <View key={school.id} style={styles.schoolCard}>
+                    <View style={styles.schoolHeader}>
+                      <Text style={styles.schoolName}>{school.name}</Text>
+                      <View
+                        style={[
+                          styles.levelBadge,
+                          getLevelBadgeStyle(school.schoolLevel),
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.levelText,
+                            getLevelTextStyle(school.schoolLevel),
+                          ]}
+                        >
+                          {school.schoolLevelName}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* 특수학급 정보 - 강조 */}
+                    <View style={styles.specialClassInfo}>
+                      <Text style={styles.specialClassLabel}>특수학급</Text>
+                      <Text style={styles.specialClassValue}>
+                        {school.specialClassCount}학급 / {school.specialStudentCount}명
+                      </Text>
+                    </View>
+
+                    <View style={styles.schoolMeta}>
+                      <Text style={styles.schoolMetaItem}>{school.foundationType}</Text>
+                      <Text style={styles.schoolMetaDot}>•</Text>
+                      <Text style={styles.schoolMetaItem}>{school.region}</Text>
+                    </View>
+
+                    {school.address && (
+                      <Text style={styles.schoolAddress}>{school.address}</Text>
+                    )}
+
+                    {/* 액션 버튼 */}
+                    <View style={styles.schoolActions}>
+                      {school.phone && (
+                        <TouchableOpacity
+                          style={styles.actionBtn}
+                          onPress={() => handleCall(school.phone)}
+                        >
+                          <Text style={styles.actionBtnText}>전화</Text>
+                        </TouchableOpacity>
+                      )}
+                      {school.website && (
+                        <TouchableOpacity
+                          style={[styles.actionBtn, styles.actionBtnOutline]}
+                          onPress={() => handleWebsite(school.website)}
+                        >
+                          <Text
+                            style={[styles.actionBtnText, styles.actionBtnTextOutline]}
+                          >
+                            홈페이지
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  </View>
+                ))}
+
+                {/* 페이지네이션 */}
+                {totalPages > 1 && (
+                  <View style={styles.pagination}>
+                    <TouchableOpacity
                       style={[
-                        styles.schoolTypeBadge,
-                        getSchoolTypeStyle(school.type),
+                        styles.pageBtn,
+                        currentPage === 1 && styles.pageBtnDisabled,
                       ]}
+                      onPress={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
+                      disabled={currentPage === 1}
                     >
                       <Text
                         style={[
-                          styles.schoolTypeText,
-                          getSchoolTypeTextStyle(school.type),
+                          styles.pageBtnText,
+                          currentPage === 1 && styles.pageBtnTextDisabled,
                         ]}
                       >
-                        {school.type}
+                        이전
                       </Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.schoolMeta}>
-                    <Text style={styles.schoolMetaItem}>{school.foundationType}</Text>
-                    <Text style={styles.schoolMetaDot}>•</Text>
-                    <Text style={styles.schoolMetaItem}>{school.coedu}</Text>
-                  </View>
-
-                  <Text style={styles.schoolRegion}>{school.region}</Text>
-                  <Text style={styles.schoolAddress}>
-                    {school.address} {school.addressDetail}
-                  </Text>
-
-                  {/* 액션 버튼 */}
-                  <View style={styles.schoolActions}>
-                    {school.phone && (
-                      <TouchableOpacity
-                        style={styles.actionBtn}
-                        onPress={() => handleCall(school.phone)}
+                    </TouchableOpacity>
+                    <Text style={styles.pageNumber}>{currentPage}</Text>
+                    <TouchableOpacity
+                      style={[
+                        styles.pageBtn,
+                        currentPage >= totalPages && styles.pageBtnDisabled,
+                      ]}
+                      onPress={() =>
+                        currentPage < totalPages && setCurrentPage(currentPage + 1)
+                      }
+                      disabled={currentPage >= totalPages}
+                    >
+                      <Text
+                        style={[
+                          styles.pageBtnText,
+                          currentPage >= totalPages && styles.pageBtnTextDisabled,
+                        ]}
                       >
-                        <Text style={styles.actionBtnText}>📞 전화</Text>
-                      </TouchableOpacity>
-                    )}
-                    {school.website && (
-                      <TouchableOpacity
-                        style={[styles.actionBtn, styles.actionBtnOutline]}
-                        onPress={() => handleWebsite(school.website)}
-                      >
-                        <Text style={[styles.actionBtnText, styles.actionBtnTextOutline]}>
-                          🌐 홈페이지
-                        </Text>
-                      </TouchableOpacity>
-                    )}
+                        다음
+                      </Text>
+                    </TouchableOpacity>
                   </View>
-                </View>
-              ))
+                )}
+              </>
             )}
           </View>
         ) : (
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateIcon}>🏫</Text>
+            <Text style={styles.emptyStateTitle}>특수학급 학교 검색</Text>
             <Text style={styles.emptyStateText}>
-              지역과 학교 유형을 선택하고{'\n'}검색 버튼을 눌러주세요
+              지역을 선택하고 검색 버튼을 눌러{'\n'}
+              특수학급이 설치된 학교를 찾아보세요
             </Text>
           </View>
         )}
 
-        <View style={{ height: 100 }} />
-      </ScrollView>
-
-      <FooterNav />
-    </View>
+        {/* 추가 안내 */}
+        <View style={styles.guideSection}>
+          <Text style={styles.guideTitle}>특수학급 입학 안내</Text>
+          <View style={styles.guideItem}>
+            <Text style={styles.guideNumber}>1</Text>
+            <View style={styles.guideContent}>
+              <Text style={styles.guideItemTitle}>특수교육대상자 선정</Text>
+              <Text style={styles.guideItemText}>
+                특수교육지원센터에서 진단/평가 후 선정
+              </Text>
+            </View>
+          </View>
+          <View style={styles.guideItem}>
+            <Text style={styles.guideNumber}>2</Text>
+            <View style={styles.guideContent}>
+              <Text style={styles.guideItemTitle}>배치 희망 학교 신청</Text>
+              <Text style={styles.guideItemText}>
+                거주지 인근 특수학급 설치 학교로 신청
+              </Text>
+            </View>
+          </View>
+          <View style={styles.guideItem}>
+            <Text style={styles.guideNumber}>3</Text>
+            <View style={styles.guideContent}>
+              <Text style={styles.guideItemTitle}>특수교육운영위원회 심사</Text>
+              <Text style={styles.guideItemText}>
+                교육지원청에서 배치 결정
+              </Text>
+            </View>
+          </View>
+        </View>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F8F9FA',
   },
   content: {
-    flex: 1,
+    padding: 20,
+    paddingBottom: 100,
   },
   header: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    marginBottom: 20,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#1a1a1a',
+    marginBottom: 8,
   },
   subtitle: {
     fontSize: 14,
     color: '#666',
-    marginTop: 4,
+  },
+  infoBox: {
+    backgroundColor: '#E8F5E9',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 20,
+  },
+  infoTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#2E7D32',
+    marginBottom: 8,
+  },
+  infoText: {
+    fontSize: 13,
+    color: '#1B5E20',
+    lineHeight: 20,
   },
   filterSection: {
     backgroundColor: '#fff',
-    padding: 16,
-    marginTop: 8,
-  },
-  filterLabel: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 12,
-  },
-  regionScroll: {
-    marginBottom: 16,
-  },
-  regionButton: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    backgroundColor: '#f5f5f5',
+    padding: 20,
     borderRadius: 16,
-    marginRight: 8,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  regionButtonSelected: {
-    backgroundColor: '#E3F2FD',
-    borderWidth: 1,
-    borderColor: '#007AFF',
-  },
-  regionText: {
-    fontSize: 13,
-    color: '#666',
-  },
-  regionTextSelected: {
-    color: '#007AFF',
+  filterTitle: {
+    fontSize: 16,
     fontWeight: '600',
-  },
-  typeButtons: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
+    color: '#333',
     marginBottom: 16,
   },
-  typeButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 8,
+  pickerContainer: {
+    marginBottom: 16,
   },
-  typeButtonSelected: {
-    backgroundColor: '#007AFF',
-  },
-  typeButtonText: {
-    fontSize: 14,
+  pickerLabel: {
+    fontSize: 13,
+    fontWeight: '500',
     color: '#666',
+    marginBottom: 8,
   },
-  typeButtonTextSelected: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  searchRow: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  searchInput: {
-    flex: 1,
-    height: 48,
-    backgroundColor: '#f5f5f5',
+  pickerWrapper: {
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
     borderRadius: 8,
-    paddingHorizontal: 16,
-    fontSize: 16,
+    backgroundColor: '#FAFAFA',
+    overflow: 'hidden',
+  },
+  picker: {
+    height: 50,
   },
   searchButton: {
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 24,
+    backgroundColor: '#4CAF50',
+    paddingVertical: 14,
     borderRadius: 8,
-    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 8,
   },
   searchButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
-  tipBox: {
-    flexDirection: 'row',
-    backgroundColor: '#E8F5E9',
-    margin: 16,
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'flex-start',
+  loadingContainer: {
+    alignItems: 'center',
+    paddingVertical: 40,
   },
-  tipIcon: {
-    fontSize: 16,
-    marginRight: 8,
-  },
-  tipText: {
-    flex: 1,
-    fontSize: 13,
-    color: '#2E7D32',
-    lineHeight: 18,
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#666',
   },
   errorBox: {
-    margin: 16,
-    padding: 16,
     backgroundColor: '#FFEBEE',
+    padding: 16,
     borderRadius: 8,
+    marginBottom: 20,
   },
   errorText: {
     color: '#C62828',
     fontSize: 14,
-    textAlign: 'center',
   },
   resultsSection: {
-    padding: 16,
+    marginBottom: 20,
   },
   resultsTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: '#333',
-    marginBottom: 12,
+    marginBottom: 4,
   },
-  resultsSub: {
+  pageInfo: {
     fontSize: 13,
-    fontWeight: '400',
+    color: '#666',
+    marginBottom: 16,
+  },
+  emptyResult: {
+    alignItems: 'center',
+    paddingVertical: 40,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+  },
+  emptyResultText: {
+    fontSize: 14,
     color: '#999',
   },
   schoolCard: {
     backgroundColor: '#fff',
-    borderRadius: 12,
     padding: 16,
+    borderRadius: 12,
     marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 1,
   },
   schoolHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 6,
+    alignItems: 'flex-start',
+    marginBottom: 12,
   },
   schoolName: {
-    fontSize: 17,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1a1a1a',
     flex: 1,
     marginRight: 8,
   },
-  schoolTypeBadge: {
-    backgroundColor: '#f0f0f0',
+  levelBadge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 4,
+    borderRadius: 12,
   },
-  specialSchoolBadge: {
-    backgroundColor: '#E8F5E9',
-  },
-  elementaryBadge: {
-    backgroundColor: '#FFF3E0',
-  },
-  middleBadge: {
-    backgroundColor: '#E3F2FD',
-  },
-  highBadge: {
-    backgroundColor: '#F3E5F5',
-  },
-  schoolTypeText: {
+  levelText: {
     fontSize: 12,
-    color: '#666',
+    fontWeight: '500',
+  },
+  specialClassInfo: {
+    backgroundColor: '#FFF8E1',
+    padding: 12,
+    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  specialClassLabel: {
+    fontSize: 13,
     fontWeight: '600',
+    color: '#F57C00',
+    marginRight: 8,
   },
-  specialSchoolText: {
-    color: '#2E7D32',
-  },
-  elementaryText: {
+  specialClassValue: {
+    fontSize: 15,
+    fontWeight: 'bold',
     color: '#E65100',
-  },
-  middleText: {
-    color: '#1976D2',
-  },
-  highText: {
-    color: '#7B1FA2',
   },
   schoolMeta: {
     flexDirection: 'row',
@@ -489,25 +586,21 @@ const styles = StyleSheet.create({
   schoolMetaDot: {
     fontSize: 13,
     color: '#ccc',
-    marginHorizontal: 6,
-  },
-  schoolRegion: {
-    fontSize: 13,
-    color: '#007AFF',
-    marginBottom: 2,
+    marginHorizontal: 8,
   },
   schoolAddress: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#666',
     marginBottom: 12,
+    lineHeight: 18,
   },
   schoolActions: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 8,
   },
   actionBtn: {
     flex: 1,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#4CAF50',
     paddingVertical: 10,
     borderRadius: 8,
     alignItems: 'center',
@@ -515,36 +608,114 @@ const styles = StyleSheet.create({
   actionBtnOutline: {
     backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: '#007AFF',
+    borderColor: '#4CAF50',
   },
   actionBtnText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#fff',
+  },
+  actionBtnTextOutline: {
+    color: '#4CAF50',
+  },
+  pagination: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 16,
+    gap: 16,
+  },
+  pageBtn: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: '#4CAF50',
+    borderRadius: 8,
+  },
+  pageBtnDisabled: {
+    backgroundColor: '#E0E0E0',
+  },
+  pageBtnText: {
     fontSize: 14,
     fontWeight: '600',
     color: '#fff',
   },
-  actionBtnTextOutline: {
-    color: '#007AFF',
+  pageBtnTextDisabled: {
+    color: '#999',
+  },
+  pageNumber: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    minWidth: 40,
+    textAlign: 'center',
   },
   emptyState: {
     alignItems: 'center',
     paddingVertical: 60,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    marginBottom: 20,
   },
   emptyStateIcon: {
     fontSize: 48,
     marginBottom: 16,
   },
+  emptyStateTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 8,
+  },
   emptyStateText: {
-    fontSize: 16,
-    color: '#999',
+    fontSize: 14,
+    color: '#666',
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: 20,
   },
-  emptyResult: {
-    alignItems: 'center',
-    paddingVertical: 40,
+  guideSection: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  emptyResultText: {
+  guideTitle: {
     fontSize: 16,
-    color: '#999',
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 16,
+  },
+  guideItem: {
+    flexDirection: 'row',
+    marginBottom: 16,
+  },
+  guideNumber: {
+    width: 28,
+    height: 28,
+    backgroundColor: '#4CAF50',
+    borderRadius: 14,
+    textAlign: 'center',
+    lineHeight: 28,
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 14,
+    marginRight: 12,
+  },
+  guideContent: {
+    flex: 1,
+  },
+  guideItemTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 4,
+  },
+  guideItemText: {
+    fontSize: 13,
+    color: '#666',
+    lineHeight: 18,
   },
 });

@@ -1,5 +1,6 @@
 // NEIS 교육정보 개방 포털 API 서비스
 
+const API_KEY = '97ee1075671f4382897803007f058b05';
 const BASE_URL = 'https://open.neis.go.kr/hub';
 
 // 시도교육청 코드
@@ -119,7 +120,7 @@ export async function fetchSchools(params: {
 }): Promise<{ schools: School[]; totalCount: number }> {
   const { page = 1, perPage = 50, regionCode, schoolType, schoolName } = params;
 
-  let url = `${BASE_URL}/schoolInfo?Type=json&pIndex=${page}&pSize=${perPage}`;
+  let url = `${BASE_URL}/schoolInfo?KEY=${API_KEY}&Type=json&pIndex=${page}&pSize=${perPage}`;
 
   if (regionCode) {
     url += `&ATPT_OFCDC_SC_CODE=${regionCode}`;
@@ -175,7 +176,7 @@ export async function fetchSchoolDetail(
   regionCode: string,
   schoolCode: string
 ): Promise<School | null> {
-  const url = `${BASE_URL}/schoolInfo?Type=json&pIndex=1&pSize=1&ATPT_OFCDC_SC_CODE=${regionCode}&SD_SCHUL_CODE=${schoolCode}`;
+  const url = `${BASE_URL}/schoolInfo?KEY=${API_KEY}&Type=json&pIndex=1&pSize=1&ATPT_OFCDC_SC_CODE=${regionCode}&SD_SCHUL_CODE=${schoolCode}`;
 
   try {
     const response = await fetch(url);
