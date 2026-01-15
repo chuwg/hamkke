@@ -11,6 +11,7 @@ import {
 import { useRouter } from 'expo-router';
 import { Calendar } from 'react-native-calendars';
 import { useChild } from '../../contexts/ChildContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { schedulesApi } from '../../services/database';
 import { Schedule, RecurrenceRule } from '../../types';
 import { calendarService } from '../../services/calendar';
@@ -64,11 +65,30 @@ function expandRecurringSchedules(schedules: Schedule[], startDate: Date, endDat
 
 export default function ScheduleScreen() {
   const { selectedChild } = useChild();
+  const { theme } = useTheme();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
   const [selectedDate, setSelectedDate] = useState('');
   const router = useRouter();
+
+  const ds = {
+    container: { backgroundColor: theme.colors.background },
+    header: { borderBottomColor: theme.colors.border },
+    title: { color: theme.colors.text },
+    subtitle: { color: theme.colors.textMuted },
+    emptyText: { color: theme.colors.textMuted },
+    scheduleCard: { backgroundColor: theme.colors.card },
+    scheduleTitle: { color: theme.colors.text },
+    scheduleDate: { color: theme.colors.accent },
+    scheduleTime: { color: theme.colors.textSecondary },
+    scheduleDescription: { color: theme.colors.textSecondary },
+    toggleButton: { backgroundColor: theme.colors.surface },
+    toggleButtonText: { color: theme.colors.textSecondary },
+    dateHeader: { backgroundColor: theme.colors.surface },
+    dateHeaderText: { color: theme.colors.text },
+    scheduleActions: { borderTopColor: theme.colors.border },
+  };
 
   useEffect(() => {
     if (selectedChild) {
@@ -193,51 +213,51 @@ export default function ScheduleScreen() {
 
   if (!selectedChild) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, ds.container]}>
         <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>프로필 탭에서 자녀를 선택해주세요</Text>
+          <Text style={[styles.emptyText, ds.emptyText]}>프로필 탭에서 자녀를 선택해주세요</Text>
         </View>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
+    <View style={[styles.container, ds.container]}>
+      <View style={[styles.header, ds.header]}>
         <View>
-          <Text style={styles.title}>일정 관리</Text>
-          <Text style={styles.subtitle}>{selectedChild.name}의 일정</Text>
+          <Text style={[styles.title, ds.title]}>일정 관리</Text>
+          <Text style={[styles.subtitle, ds.subtitle]}>{selectedChild.name}의 일정</Text>
         </View>
-        <TouchableOpacity style={styles.addButton} onPress={handleAddSchedule}>
+        <TouchableOpacity style={[styles.addButton, { backgroundColor: theme.colors.accent }]} onPress={handleAddSchedule}>
           <Text style={styles.addButtonText}>+ 추가</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.viewToggle}>
         <TouchableOpacity
-          style={[styles.toggleButton, viewMode === 'calendar' && styles.toggleButtonActive]}
+          style={[styles.toggleButton, ds.toggleButton, viewMode === 'calendar' && styles.toggleButtonActive, viewMode === 'calendar' && { backgroundColor: theme.colors.accent }]}
           onPress={() => setViewMode('calendar')}
         >
-          <Text style={[styles.toggleButtonText, viewMode === 'calendar' && styles.toggleButtonTextActive]}>
+          <Text style={[styles.toggleButtonText, ds.toggleButtonText, viewMode === 'calendar' && styles.toggleButtonTextActive]}>
             달력
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.toggleButton, viewMode === 'list' && styles.toggleButtonActive]}
+          style={[styles.toggleButton, ds.toggleButton, viewMode === 'list' && styles.toggleButtonActive, viewMode === 'list' && { backgroundColor: theme.colors.accent }]}
           onPress={() => setViewMode('list')}
         >
-          <Text style={[styles.toggleButtonText, viewMode === 'list' && styles.toggleButtonTextActive]}>
+          <Text style={[styles.toggleButtonText, ds.toggleButtonText, viewMode === 'list' && styles.toggleButtonTextActive]}>
             목록
           </Text>
         </TouchableOpacity>
       </View>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 20 }} />
+        <ActivityIndicator size="large" color={theme.colors.accent} style={{ marginTop: 20 }} />
       ) : schedules.length === 0 ? (
         <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>등록된 일정이 없습니다</Text>
-          <TouchableOpacity style={styles.emptyButton} onPress={handleAddSchedule}>
+          <Text style={[styles.emptyText, ds.emptyText]}>등록된 일정이 없습니다</Text>
+          <TouchableOpacity style={[styles.emptyButton, { backgroundColor: theme.colors.accent }]} onPress={handleAddSchedule}>
             <Text style={styles.emptyButtonText}>첫 일정 추가하기</Text>
           </TouchableOpacity>
         </View>
@@ -250,21 +270,28 @@ export default function ScheduleScreen() {
                 setSelectedDate(day.dateString);
               }}
               theme={{
-                selectedDayBackgroundColor: '#007AFF',
-                todayTextColor: '#007AFF',
-                dotColor: '#007AFF',
-                arrowColor: '#007AFF',
+                backgroundColor: theme.colors.background,
+                calendarBackground: theme.colors.background,
+                textSectionTitleColor: theme.colors.textSecondary,
+                selectedDayBackgroundColor: theme.colors.accent,
+                selectedDayTextColor: '#ffffff',
+                todayTextColor: theme.colors.accent,
+                dayTextColor: theme.colors.text,
+                textDisabledColor: theme.colors.textMuted,
+                dotColor: theme.colors.accent,
+                arrowColor: theme.colors.accent,
+                monthTextColor: theme.colors.text,
               }}
             />
           )}
 
           {selectedDate && (
-            <View style={styles.dateHeader}>
-              <Text style={styles.dateHeaderText}>
+            <View style={[styles.dateHeader, ds.dateHeader]}>
+              <Text style={[styles.dateHeaderText, ds.dateHeaderText]}>
                 {formatDate(selectedDate)}
               </Text>
               <TouchableOpacity onPress={() => setSelectedDate('')}>
-                <Text style={styles.clearDateText}>전체 보기</Text>
+                <Text style={[styles.clearDateText, { color: theme.colors.accent }]}>전체 보기</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -273,30 +300,30 @@ export default function ScheduleScreen() {
           data={filteredSchedules}
           keyExtractor={(item, index) => `${item.id}-${item.start_time}-${index}`}
           renderItem={({ item }) => (
-            <View style={styles.scheduleCard}>
+            <View style={[styles.scheduleCard, ds.scheduleCard]}>
               <View style={styles.scheduleHeader}>
                 <View style={styles.scheduleMain}>
-                  <Text style={styles.scheduleTitle}>{item.title}</Text>
-                  <Text style={styles.scheduleDate}>
+                  <Text style={[styles.scheduleTitle, ds.scheduleTitle]}>{item.title}</Text>
+                  <Text style={[styles.scheduleDate, ds.scheduleDate]}>
                     {formatDate(item.start_time)}
                   </Text>
-                  <Text style={styles.scheduleTime}>
+                  <Text style={[styles.scheduleTime, ds.scheduleTime]}>
                     {formatDateTime(item.start_time)} - {formatDateTime(item.end_time)}
                   </Text>
                   {item.description && (
-                    <Text style={styles.scheduleDescription}>{item.description}</Text>
+                    <Text style={[styles.scheduleDescription, ds.scheduleDescription]}>{item.description}</Text>
                   )}
                   {item.reminder_minutes && (
-                    <Text style={styles.scheduleReminder}>
+                    <Text style={[styles.scheduleReminder, { color: theme.colors.warning }]}>
                       ⏰ {item.reminder_minutes}분 전 알림
                     </Text>
                   )}
                 </View>
               </View>
 
-              <View style={styles.scheduleActions}>
+              <View style={[styles.scheduleActions, ds.scheduleActions]}>
                 <TouchableOpacity
-                  style={styles.actionButton}
+                  style={[styles.actionButton, { backgroundColor: theme.colors.accent }]}
                   onPress={() => handleEditSchedule(item.id)}
                 >
                   <Text style={styles.actionButtonText}>수정</Text>

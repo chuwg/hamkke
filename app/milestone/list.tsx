@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useChild } from '../../contexts/ChildContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { milestonesApi } from '../../services/database';
 import { Milestone } from '../../types';
 import FooterNav from '../../components/FooterNav';
@@ -23,10 +24,32 @@ const CATEGORIES = [
 
 export default function MilestoneListScreen() {
   const { selectedChild } = useChild();
+  const { theme } = useTheme();
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const router = useRouter();
+
+  const ds = {
+    container: { backgroundColor: theme.colors.background },
+    header: { borderBottomColor: theme.colors.border },
+    title: { color: theme.colors.text },
+    subtitle: { color: theme.colors.textMuted },
+    progressText: { color: theme.colors.textSecondary },
+    progressPercentage: { color: theme.colors.accent },
+    progressBarContainer: { backgroundColor: theme.colors.surface },
+    progressBar: { backgroundColor: theme.colors.accent },
+    categoryContainer: { borderBottomColor: theme.colors.border },
+    categoryButton: { backgroundColor: theme.colors.surface },
+    categoryButtonText: { color: theme.colors.textSecondary },
+    emptyText: { color: theme.colors.textMuted },
+    milestoneCard: { backgroundColor: theme.colors.card },
+    categoryBadge: { color: theme.colors.textSecondary },
+    milestoneTitle: { color: theme.colors.text },
+    milestoneNotes: { color: theme.colors.textSecondary },
+    milestoneActions: { borderTopColor: theme.colors.border },
+    checkboxBox: { borderColor: theme.colors.border },
+  };
 
   useEffect(() => {
     if (selectedChild) {
@@ -125,23 +148,23 @@ export default function MilestoneListScreen() {
 
   if (!selectedChild) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, ds.container]}>
         <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>프로필 탭에서 자녀를 선택해주세요</Text>
+          <Text style={[styles.emptyText, ds.emptyText]}>프로필 탭에서 자녀를 선택해주세요</Text>
         </View>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
+    <View style={[styles.container, ds.container]}>
+      <View style={[styles.header, ds.header]}>
         <View style={styles.headerTop}>
           <View>
-            <Text style={styles.title}>발달 마일스톤</Text>
-            <Text style={styles.subtitle}>{selectedChild.name}의 발달 기록</Text>
+            <Text style={[styles.title, ds.title]}>발달 마일스톤</Text>
+            <Text style={[styles.subtitle, ds.subtitle]}>{selectedChild.name}의 발달 기록</Text>
           </View>
-          <TouchableOpacity style={styles.addButton} onPress={handleAddMilestone}>
+          <TouchableOpacity style={[styles.addButton, { backgroundColor: theme.colors.accent }]} onPress={handleAddMilestone}>
             <Text style={styles.addButtonText}>+ 추가</Text>
           </TouchableOpacity>
         </View>
@@ -149,19 +172,19 @@ export default function MilestoneListScreen() {
         {/* 진행률 */}
         <View style={styles.progressContainer}>
           <View style={styles.progressInfo}>
-            <Text style={styles.progressText}>
+            <Text style={[styles.progressText, ds.progressText]}>
               달성률: {achievedMilestones}/{totalMilestones}
             </Text>
-            <Text style={styles.progressPercentage}>{progressPercentage}%</Text>
+            <Text style={[styles.progressPercentage, ds.progressPercentage]}>{progressPercentage}%</Text>
           </View>
-          <View style={styles.progressBarContainer}>
-            <View style={[styles.progressBar, { width: `${progressPercentage}%` }]} />
+          <View style={[styles.progressBarContainer, ds.progressBarContainer]}>
+            <View style={[styles.progressBar, ds.progressBar, { width: `${progressPercentage}%` }]} />
           </View>
         </View>
       </View>
 
       {/* 카테고리 필터 */}
-      <View style={styles.categoryContainer}>
+      <View style={[styles.categoryContainer, ds.categoryContainer]}>
         <FlatList
           horizontal
           data={CATEGORIES}
@@ -171,7 +194,9 @@ export default function MilestoneListScreen() {
             <TouchableOpacity
               style={[
                 styles.categoryButton,
+                ds.categoryButton,
                 selectedCategory === item.id && styles.categoryButtonActive,
+                selectedCategory === item.id && { backgroundColor: theme.colors.accent },
               ]}
               onPress={() => setSelectedCategory(item.id)}
             >
@@ -179,6 +204,7 @@ export default function MilestoneListScreen() {
               <Text
                 style={[
                   styles.categoryButtonText,
+                  ds.categoryButtonText,
                   selectedCategory === item.id && styles.categoryButtonTextActive,
                 ]}
               >
@@ -191,15 +217,15 @@ export default function MilestoneListScreen() {
       </View>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 20 }} />
+        <ActivityIndicator size="large" color={theme.colors.accent} style={{ marginTop: 20 }} />
       ) : filteredMilestones.length === 0 ? (
         <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>
+          <Text style={[styles.emptyText, ds.emptyText]}>
             {selectedCategory === 'all'
               ? '등록된 마일스톤이 없습니다'
               : `${getCategoryName(selectedCategory)} 카테고리에 등록된 마일스톤이 없습니다`}
           </Text>
-          <TouchableOpacity style={styles.emptyButton} onPress={handleAddMilestone}>
+          <TouchableOpacity style={[styles.emptyButton, { backgroundColor: theme.colors.accent }]} onPress={handleAddMilestone}>
             <Text style={styles.emptyButtonText}>첫 마일스톤 추가하기</Text>
           </TouchableOpacity>
         </View>
@@ -208,46 +234,47 @@ export default function MilestoneListScreen() {
           data={filteredMilestones}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <View style={styles.milestoneCard}>
+            <View style={[styles.milestoneCard, ds.milestoneCard]}>
               <View style={styles.milestoneHeader}>
                 <TouchableOpacity
                   style={styles.checkbox}
                   onPress={() => handleToggleAchieved(item)}
                 >
-                  <View style={[styles.checkboxBox, item.achieved && styles.checkboxBoxChecked]}>
+                  <View style={[styles.checkboxBox, ds.checkboxBox, item.achieved && styles.checkboxBoxChecked]}>
                     {item.achieved && <Text style={styles.checkboxCheck}>✓</Text>}
                   </View>
                 </TouchableOpacity>
                 <View style={styles.milestoneContent}>
                   <View style={styles.milestoneTop}>
-                    <Text style={styles.categoryBadge}>
+                    <Text style={[styles.categoryBadge, ds.categoryBadge]}>
                       {getCategoryIcon(item.category)} {getCategoryName(item.category)}
                     </Text>
                   </View>
                   <Text
                     style={[
                       styles.milestoneTitle,
+                      ds.milestoneTitle,
                       item.achieved && styles.milestoneTitleAchieved,
                     ]}
                   >
                     {item.milestone}
                   </Text>
                   {item.achieved && item.achieved_date && (
-                    <Text style={styles.achievedDate}>
+                    <Text style={[styles.achievedDate, { color: theme.colors.success }]}>
                       ✅ {formatDate(item.achieved_date)} 달성
                     </Text>
                   )}
                   {item.notes && (
-                    <Text style={styles.milestoneNotes} numberOfLines={2}>
+                    <Text style={[styles.milestoneNotes, ds.milestoneNotes]} numberOfLines={2}>
                       {item.notes}
                     </Text>
                   )}
                 </View>
               </View>
 
-              <View style={styles.milestoneActions}>
+              <View style={[styles.milestoneActions, ds.milestoneActions]}>
                 <TouchableOpacity
-                  style={styles.actionButton}
+                  style={[styles.actionButton, { backgroundColor: theme.colors.accent }]}
                   onPress={() => handleEditMilestone(item.id)}
                 >
                   <Text style={styles.actionButtonText}>수정</Text>

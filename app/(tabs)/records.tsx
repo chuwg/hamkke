@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useChild } from '../../contexts/ChildContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { therapyRecordsApi } from '../../services/database';
 import { TherapyRecord } from '../../types';
 import BarChart from '../../components/BarChart';
@@ -18,9 +19,30 @@ import PieChart from '../../components/PieChart';
 
 export default function RecordsScreen() {
   const { selectedChild } = useChild();
+  const { theme } = useTheme();
   const [records, setRecords] = useState<TherapyRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  const ds = {
+    container: { backgroundColor: theme.colors.background },
+    header: { borderBottomColor: theme.colors.border },
+    title: { color: theme.colors.text },
+    subtitle: { color: theme.colors.textMuted },
+    statCard: { backgroundColor: theme.colors.card },
+    statNumber: { color: theme.colors.accent },
+    statLabel: { color: theme.colors.textSecondary },
+    chartSection: { backgroundColor: theme.colors.card },
+    chartTitle: { color: theme.colors.text },
+    listTitle: { color: theme.colors.text },
+    emptyText: { color: theme.colors.textMuted },
+    recordCard: { backgroundColor: theme.colors.card },
+    recordDate: { color: theme.colors.textSecondary },
+    recordInfoLabel: { color: theme.colors.textMuted },
+    recordInfoValue: { color: theme.colors.text },
+    recordNotes: { color: theme.colors.textSecondary },
+    recordActions: { borderTopColor: theme.colors.border },
+  };
 
   useEffect(() => {
     if (selectedChild) {
@@ -151,48 +173,48 @@ export default function RecordsScreen() {
 
   if (!selectedChild) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, ds.container]}>
         <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>프로필 탭에서 자녀를 선택해주세요</Text>
+          <Text style={[styles.emptyText, ds.emptyText]}>프로필 탭에서 자녀를 선택해주세요</Text>
         </View>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
+    <View style={[styles.container, ds.container]}>
+      <View style={[styles.header, ds.header]}>
         <View>
-          <Text style={styles.title}>치료 기록</Text>
-          <Text style={styles.subtitle}>{selectedChild.name}의 치료 기록</Text>
+          <Text style={[styles.title, ds.title]}>치료 기록</Text>
+          <Text style={[styles.subtitle, ds.subtitle]}>{selectedChild.name}의 치료 기록</Text>
         </View>
-        <TouchableOpacity style={styles.addButton} onPress={handleAddRecord}>
+        <TouchableOpacity style={[styles.addButton, { backgroundColor: theme.colors.accent }]} onPress={handleAddRecord}>
           <Text style={styles.addButtonText}>+ 추가</Text>
         </TouchableOpacity>
       </View>
 
       {/* 통계 카드 */}
       <View style={styles.statsContainer}>
-        <View style={styles.statCard}>
-          <Text style={styles.statNumber}>{totalSessions}</Text>
-          <Text style={styles.statLabel}>총 세션</Text>
+        <View style={[styles.statCard, ds.statCard]}>
+          <Text style={[styles.statNumber, ds.statNumber]}>{totalSessions}</Text>
+          <Text style={[styles.statLabel, ds.statLabel]}>총 세션</Text>
         </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statNumber}>{totalHours}h</Text>
-          <Text style={styles.statLabel}>총 시간</Text>
+        <View style={[styles.statCard, ds.statCard]}>
+          <Text style={[styles.statNumber, ds.statNumber]}>{totalHours}h</Text>
+          <Text style={[styles.statLabel, ds.statLabel]}>총 시간</Text>
         </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statNumber}>{thisMonthRecords}</Text>
-          <Text style={styles.statLabel}>이번 달</Text>
+        <View style={[styles.statCard, ds.statCard]}>
+          <Text style={[styles.statNumber, ds.statNumber]}>{thisMonthRecords}</Text>
+          <Text style={[styles.statLabel, ds.statLabel]}>이번 달</Text>
         </View>
       </View>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 20 }} />
+        <ActivityIndicator size="large" color={theme.colors.accent} style={{ marginTop: 20 }} />
       ) : records.length === 0 ? (
         <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>등록된 치료 기록이 없습니다</Text>
-          <TouchableOpacity style={styles.emptyButton} onPress={handleAddRecord}>
+          <Text style={[styles.emptyText, ds.emptyText]}>등록된 치료 기록이 없습니다</Text>
+          <TouchableOpacity style={[styles.emptyButton, { backgroundColor: theme.colors.accent }]} onPress={handleAddRecord}>
             <Text style={styles.emptyButtonText}>첫 기록 추가하기</Text>
           </TouchableOpacity>
         </View>
@@ -203,24 +225,24 @@ export default function RecordsScreen() {
           ListHeaderComponent={
             <View style={styles.chartsContainer}>
               {/* 월별 치료 횟수 차트 */}
-              <View style={styles.chartSection}>
-                <Text style={styles.chartTitle}>월별 치료 횟수</Text>
+              <View style={[styles.chartSection, ds.chartSection]}>
+                <Text style={[styles.chartTitle, ds.chartTitle]}>월별 치료 횟수</Text>
                 <BarChart data={monthlyData} width={340} height={180} />
               </View>
 
               {/* 치료 유형별 비율 차트 */}
               {therapyTypeData.length > 0 && (
-                <View style={styles.chartSection}>
-                  <Text style={styles.chartTitle}>치료 유형별 비율</Text>
+                <View style={[styles.chartSection, ds.chartSection]}>
+                  <Text style={[styles.chartTitle, ds.chartTitle]}>치료 유형별 비율</Text>
                   <PieChart data={therapyTypeData} size={180} />
                 </View>
               )}
 
-              <Text style={styles.listTitle}>치료 기록 목록</Text>
+              <Text style={[styles.listTitle, ds.listTitle]}>치료 기록 목록</Text>
             </View>
           }
           renderItem={({ item }) => (
-            <View style={styles.recordCard}>
+            <View style={[styles.recordCard, ds.recordCard]}>
               <View style={styles.recordHeader}>
                 <View
                   style={[
@@ -230,31 +252,31 @@ export default function RecordsScreen() {
                 >
                   <Text style={styles.therapyTypeText}>{item.therapy_type}</Text>
                 </View>
-                <Text style={styles.recordDate}>{formatDate(item.date)}</Text>
+                <Text style={[styles.recordDate, ds.recordDate]}>{formatDate(item.date)}</Text>
               </View>
 
               <View style={styles.recordContent}>
                 <View style={styles.recordInfo}>
-                  <Text style={styles.recordInfoLabel}>치료 시간</Text>
-                  <Text style={styles.recordInfoValue}>{item.duration_minutes}분</Text>
+                  <Text style={[styles.recordInfoLabel, ds.recordInfoLabel]}>치료 시간</Text>
+                  <Text style={[styles.recordInfoValue, ds.recordInfoValue]}>{item.duration_minutes}분</Text>
                 </View>
                 {item.therapist_name && (
                   <View style={styles.recordInfo}>
-                    <Text style={styles.recordInfoLabel}>치료사</Text>
-                    <Text style={styles.recordInfoValue}>{item.therapist_name}</Text>
+                    <Text style={[styles.recordInfoLabel, ds.recordInfoLabel]}>치료사</Text>
+                    <Text style={[styles.recordInfoValue, ds.recordInfoValue]}>{item.therapist_name}</Text>
                   </View>
                 )}
               </View>
 
               {item.notes && (
-                <Text style={styles.recordNotes} numberOfLines={2}>
+                <Text style={[styles.recordNotes, ds.recordNotes]} numberOfLines={2}>
                   {item.notes}
                 </Text>
               )}
 
-              <View style={styles.recordActions}>
+              <View style={[styles.recordActions, ds.recordActions]}>
                 <TouchableOpacity
-                  style={styles.actionButton}
+                  style={[styles.actionButton, { backgroundColor: theme.colors.accent }]}
                   onPress={() => handleEditRecord(item.id)}
                 >
                   <Text style={styles.actionButtonText}>수정</Text>

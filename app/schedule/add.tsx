@@ -14,6 +14,7 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useChild } from '../../contexts/ChildContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { schedulesApi } from '../../services/database';
 import { formatTimeString, isValidTime, toLocalISOString } from '../../utils/dateFormat';
 import { RecurrenceRule } from '../../types';
@@ -45,9 +46,26 @@ export default function AddScheduleScreen() {
   const [recurrenceEndDate, setRecurrenceEndDate] = useState('');
   const [showRecurrenceEndDatePicker, setShowRecurrenceEndDatePicker] = useState(false);
   const { selectedChild } = useChild();
+  const { theme } = useTheme();
   const router = useRouter();
 
   const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
+
+  const dynamicStyles = {
+    container: { backgroundColor: theme.colors.background },
+    header: { borderBottomColor: theme.colors.border },
+    cancelButton: { color: theme.colors.accent },
+    headerTitle: { color: theme.colors.text },
+    label: { color: theme.colors.text },
+    input: { borderColor: theme.colors.border, backgroundColor: theme.colors.surface, color: theme.colors.text },
+    inputText: { color: theme.colors.text },
+    placeholderText: { color: theme.colors.textMuted },
+    hint: { color: theme.colors.textMuted },
+    checkboxLabel: { color: theme.colors.text },
+    checkboxBox: { borderColor: theme.colors.border },
+    dayButton: { borderColor: theme.colors.border, backgroundColor: theme.colors.surface },
+    dayButtonText: { color: theme.colors.textSecondary },
+  };
 
   // 달력에서 전달받은 날짜가 있으면 자동으로 설정
   useEffect(() => {
@@ -248,36 +266,38 @@ export default function AddScheduleScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
+      style={[styles.container, dynamicStyles.container]}
     >
-      <View style={styles.header}>
+      <View style={[styles.header, dynamicStyles.header]}>
         <TouchableOpacity onPress={() => router.push('/(tabs)/schedule')}>
-          <Text style={styles.cancelButton}>취소</Text>
+          <Text style={[styles.cancelButton, dynamicStyles.cancelButton]}>취소</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>일정 추가</Text>
+        <Text style={[styles.headerTitle, dynamicStyles.headerTitle]}>일정 추가</Text>
         <View style={{ width: 50 }} />
       </View>
 
       <ScrollView style={styles.content}>
         <View style={styles.formGroup}>
-          <Text style={styles.label}>제목 *</Text>
+          <Text style={[styles.label, dynamicStyles.label]}>제목 *</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, dynamicStyles.input]}
             value={title}
             onChangeText={setTitle}
             placeholder="예: 언어 치료"
+            placeholderTextColor={theme.colors.textMuted}
             editable={!loading}
           />
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={styles.label}>날짜 *</Text>
+          <Text style={[styles.label, dynamicStyles.label]}>날짜 *</Text>
           {Platform.OS === 'web' ? (
             <TextInput
-              style={styles.input}
+              style={[styles.input, dynamicStyles.input]}
               value={startDate}
               onChangeText={setStartDate}
               placeholder="YYYY-MM-DD"
+              placeholderTextColor={theme.colors.textMuted}
               editable={!loading}
               // @ts-ignore - web only property
               type="date"
@@ -285,11 +305,11 @@ export default function AddScheduleScreen() {
           ) : (
             <>
               <TouchableOpacity
-                style={styles.input}
+                style={[styles.input, dynamicStyles.input]}
                 onPress={() => !loading && setShowDatePicker(true)}
                 disabled={loading}
               >
-                <Text style={startDate ? styles.inputText : styles.placeholderText}>
+                <Text style={startDate ? [styles.inputText, dynamicStyles.inputText] : [styles.placeholderText, dynamicStyles.placeholderText]}>
                   {startDate || 'YYYY-MM-DD (예: 2024-01-15)'}
                 </Text>
               </TouchableOpacity>
@@ -303,18 +323,19 @@ export default function AddScheduleScreen() {
               )}
             </>
           )}
-          <Text style={styles.hint}>날짜를 선택하세요</Text>
+          <Text style={[styles.hint, dynamicStyles.hint]}>날짜를 선택하세요</Text>
         </View>
 
         <View style={styles.row}>
           <View style={[styles.formGroup, { flex: 1, marginRight: 10 }]}>
-            <Text style={styles.label}>시작 시간 *</Text>
+            <Text style={[styles.label, dynamicStyles.label]}>시작 시간 *</Text>
             {Platform.OS === 'web' ? (
               <TextInput
-                style={styles.input}
+                style={[styles.input, dynamicStyles.input]}
                 value={startTime}
                 onChangeText={setStartTime}
                 placeholder="HH:MM"
+                placeholderTextColor={theme.colors.textMuted}
                 editable={!loading}
                 // @ts-ignore - web only property
                 type="time"
@@ -322,11 +343,11 @@ export default function AddScheduleScreen() {
             ) : (
               <>
                 <TouchableOpacity
-                  style={styles.input}
+                  style={[styles.input, dynamicStyles.input]}
                   onPress={() => !loading && setShowStartTimePicker(true)}
                   disabled={loading}
                 >
-                  <Text style={startTime ? styles.inputText : styles.placeholderText}>
+                  <Text style={startTime ? [styles.inputText, dynamicStyles.inputText] : [styles.placeholderText, dynamicStyles.placeholderText]}>
                     {startTime || '시간 선택'}
                   </Text>
                 </TouchableOpacity>
@@ -341,17 +362,18 @@ export default function AddScheduleScreen() {
                 )}
               </>
             )}
-            <Text style={styles.hint}>시간을 선택하세요</Text>
+            <Text style={[styles.hint, dynamicStyles.hint]}>시간을 선택하세요</Text>
           </View>
 
           <View style={[styles.formGroup, { flex: 1 }]}>
-            <Text style={styles.label}>종료 시간 *</Text>
+            <Text style={[styles.label, dynamicStyles.label]}>종료 시간 *</Text>
             {Platform.OS === 'web' ? (
               <TextInput
-                style={styles.input}
+                style={[styles.input, dynamicStyles.input]}
                 value={endTime}
                 onChangeText={setEndTime}
                 placeholder="HH:MM"
+                placeholderTextColor={theme.colors.textMuted}
                 editable={!loading}
                 // @ts-ignore - web only property
                 type="time"
@@ -359,11 +381,11 @@ export default function AddScheduleScreen() {
             ) : (
               <>
                 <TouchableOpacity
-                  style={styles.input}
+                  style={[styles.input, dynamicStyles.input]}
                   onPress={() => !loading && setShowEndTimePicker(true)}
                   disabled={loading}
                 >
-                  <Text style={endTime ? styles.inputText : styles.placeholderText}>
+                  <Text style={endTime ? [styles.inputText, dynamicStyles.inputText] : [styles.placeholderText, dynamicStyles.placeholderText]}>
                     {endTime || '시간 선택'}
                   </Text>
                 </TouchableOpacity>
@@ -378,17 +400,18 @@ export default function AddScheduleScreen() {
                 )}
               </>
             )}
-            <Text style={styles.hint}>시간을 선택하세요</Text>
+            <Text style={[styles.hint, dynamicStyles.hint]}>시간을 선택하세요</Text>
           </View>
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={styles.label}>설명</Text>
+          <Text style={[styles.label, dynamicStyles.label]}>설명</Text>
           <TextInput
-            style={[styles.input, styles.textArea]}
+            style={[styles.input, styles.textArea, dynamicStyles.input]}
             value={description}
             onChangeText={setDescription}
             placeholder="일정에 대한 추가 설명 (선택사항)"
+            placeholderTextColor={theme.colors.textMuted}
             multiline
             numberOfLines={4}
             editable={!loading}
@@ -396,16 +419,17 @@ export default function AddScheduleScreen() {
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={styles.label}>알림 (분 전)</Text>
+          <Text style={[styles.label, dynamicStyles.label]}>알림 (분 전)</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, dynamicStyles.input]}
             value={reminderMinutes}
             onChangeText={setReminderMinutes}
             placeholder="예: 30 (30분 전 알림)"
+            placeholderTextColor={theme.colors.textMuted}
             keyboardType="numeric"
             editable={!loading}
           />
-          <Text style={styles.hint}>예: 30 (30분 전), 60 (1시간 전)</Text>
+          <Text style={[styles.hint, dynamicStyles.hint]}>예: 30 (30분 전), 60 (1시간 전)</Text>
         </View>
 
         <View style={styles.formGroup}>
@@ -415,23 +439,25 @@ export default function AddScheduleScreen() {
               onPress={() => !loading && setIsRecurring(!isRecurring)}
               disabled={loading}
             >
-              <View style={[styles.checkboxBox, isRecurring && styles.checkboxBoxChecked]}>
+              <View style={[styles.checkboxBox, dynamicStyles.checkboxBox, isRecurring && styles.checkboxBoxChecked, isRecurring && { backgroundColor: theme.colors.accent, borderColor: theme.colors.accent }]}>
                 {isRecurring && <Text style={styles.checkboxCheck}>✓</Text>}
               </View>
-              <Text style={styles.checkboxLabel}>매주 반복</Text>
+              <Text style={[styles.checkboxLabel, dynamicStyles.checkboxLabel]}>매주 반복</Text>
             </TouchableOpacity>
           </View>
 
           {isRecurring && (
             <>
-              <Text style={[styles.label, { marginTop: 15 }]}>반복할 요일</Text>
+              <Text style={[styles.label, dynamicStyles.label, { marginTop: 15 }]}>반복할 요일</Text>
               <View style={styles.daysContainer}>
                 {weekDays.map((day, index) => (
                   <TouchableOpacity
                     key={index}
                     style={[
                       styles.dayButton,
+                      dynamicStyles.dayButton,
                       selectedDays.includes(index) && styles.dayButtonSelected,
+                      selectedDays.includes(index) && { backgroundColor: theme.colors.accent, borderColor: theme.colors.accent },
                     ]}
                     onPress={() => !loading && toggleDay(index)}
                     disabled={loading}
@@ -439,6 +465,7 @@ export default function AddScheduleScreen() {
                     <Text
                       style={[
                         styles.dayButtonText,
+                        dynamicStyles.dayButtonText,
                         selectedDays.includes(index) && styles.dayButtonTextSelected,
                       ]}
                     >
@@ -448,13 +475,14 @@ export default function AddScheduleScreen() {
                 ))}
               </View>
 
-              <Text style={[styles.label, { marginTop: 15 }]}>반복 종료 날짜 (선택사항)</Text>
+              <Text style={[styles.label, dynamicStyles.label, { marginTop: 15 }]}>반복 종료 날짜 (선택사항)</Text>
               {Platform.OS === 'web' ? (
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, dynamicStyles.input]}
                   value={recurrenceEndDate}
                   onChangeText={setRecurrenceEndDate}
                   placeholder="YYYY-MM-DD"
+                  placeholderTextColor={theme.colors.textMuted}
                   editable={!loading}
                   // @ts-ignore - web only property
                   type="date"
@@ -462,11 +490,11 @@ export default function AddScheduleScreen() {
               ) : (
                 <>
                   <TouchableOpacity
-                    style={styles.input}
+                    style={[styles.input, dynamicStyles.input]}
                     onPress={() => !loading && setShowRecurrenceEndDatePicker(true)}
                     disabled={loading}
                   >
-                    <Text style={recurrenceEndDate ? styles.inputText : styles.placeholderText}>
+                    <Text style={recurrenceEndDate ? [styles.inputText, dynamicStyles.inputText] : [styles.placeholderText, dynamicStyles.placeholderText]}>
                       {recurrenceEndDate || '날짜 선택 (선택사항)'}
                     </Text>
                   </TouchableOpacity>
@@ -480,13 +508,13 @@ export default function AddScheduleScreen() {
                   )}
                 </>
               )}
-              <Text style={styles.hint}>비워두면 무기한 반복됩니다</Text>
+              <Text style={[styles.hint, dynamicStyles.hint]}>비워두면 무기한 반복됩니다</Text>
             </>
           )}
         </View>
 
         <TouchableOpacity
-          style={[styles.saveButton, loading && styles.saveButtonDisabled]}
+          style={[styles.saveButton, { backgroundColor: theme.colors.primary }, loading && styles.saveButtonDisabled]}
           onPress={handleSave}
           disabled={loading}
         >
