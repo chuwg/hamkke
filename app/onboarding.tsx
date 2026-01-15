@@ -64,11 +64,18 @@ export default function OnboardingScreen() {
 
   const handleNext = () => {
     if (currentIndex < SLIDES.length - 1) {
-      flatListRef.current?.scrollToIndex({ index: currentIndex + 1 });
+      const nextIndex = currentIndex + 1;
+      flatListRef.current?.scrollToOffset({ offset: nextIndex * width, animated: true });
     } else {
       completeOnboarding();
     }
   };
+
+  const getItemLayout = (_: any, index: number) => ({
+    length: width,
+    offset: width * index,
+    index,
+  });
 
   const handleSkip = () => {
     completeOnboarding();
@@ -167,6 +174,7 @@ export default function OnboardingScreen() {
         )}
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
+        getItemLayout={getItemLayout}
         bounces={false}
       />
 
