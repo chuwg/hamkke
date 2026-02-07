@@ -10,8 +10,9 @@ import {
   Platform,
   ScrollView,
   ActivityIndicator,
-  SafeAreaView,
+  Modal,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useChild } from '../../contexts/ChildContext';
@@ -43,6 +44,8 @@ export default function AddScheduleScreen() {
   const [showStartTimePicker, setShowStartTimePicker] = useState(false);
   const [showEndTimePicker, setShowEndTimePicker] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  // iOS 모달용 임시 값
+  const [tempTime, setTempTime] = useState<Date>(new Date());
   const [isRecurring, setIsRecurring] = useState(false);
   const [selectedDays, setSelectedDays] = useState<number[]>([]);
   const [recurrenceEndDate, setRecurrenceEndDate] = useState('');
@@ -114,21 +117,57 @@ export default function AddScheduleScreen() {
   };
 
   const handleStartTimeChange = (event: any, selectedTime?: Date) => {
-    setShowStartTimePicker(false);
-    if (selectedTime) {
-      const hours = String(selectedTime.getHours()).padStart(2, '0');
-      const minutes = String(selectedTime.getMinutes()).padStart(2, '0');
-      setStartTime(`${hours}:${minutes}`);
+    if (Platform.OS === 'android') {
+      setShowStartTimePicker(false);
+      if (selectedTime) {
+        const hours = String(selectedTime.getHours()).padStart(2, '0');
+        const minutes = String(selectedTime.getMinutes()).padStart(2, '0');
+        setStartTime(`${hours}:${minutes}`);
+      }
+    } else if (selectedTime) {
+      // iOS: 임시 값 업데이트 (모달 닫을 때 적용)
+      setTempTime(selectedTime);
     }
   };
 
   const handleEndTimeChange = (event: any, selectedTime?: Date) => {
-    setShowEndTimePicker(false);
-    if (selectedTime) {
-      const hours = String(selectedTime.getHours()).padStart(2, '0');
-      const minutes = String(selectedTime.getMinutes()).padStart(2, '0');
-      setEndTime(`${hours}:${minutes}`);
+    if (Platform.OS === 'android') {
+      setShowEndTimePicker(false);
+      if (selectedTime) {
+        const hours = String(selectedTime.getHours()).padStart(2, '0');
+        const minutes = String(selectedTime.getMinutes()).padStart(2, '0');
+        setEndTime(`${hours}:${minutes}`);
+      }
+    } else if (selectedTime) {
+      // iOS: 임시 값 업데이트 (모달 닫을 때 적용)
+      setTempTime(selectedTime);
     }
+  };
+
+  // iOS 모달 확인 버튼
+  const confirmStartTime = () => {
+    const hours = String(tempTime.getHours()).padStart(2, '0');
+    const minutes = String(tempTime.getMinutes()).padStart(2, '0');
+    setStartTime(`${hours}:${minutes}`);
+    setShowStartTimePicker(false);
+  };
+
+  const confirmEndTime = () => {
+    const hours = String(tempTime.getHours()).padStart(2, '0');
+    const minutes = String(tempTime.getMinutes()).padStart(2, '0');
+    setEndTime(`${hours}:${minutes}`);
+    setShowEndTimePicker(false);
+  };
+
+  // picker 열 때 임시 값 초기화
+  const openStartTimePicker = () => {
+    setTempTime(getTimeDate(startTime));
+    setShowStartTimePicker(true);
+  };
+
+  const openEndTimePicker = () => {
+    setTempTime(getTimeDate(endTime));
+    setShowEndTimePicker(true);
   };
 
   const getTimeDate = (timeString: string) => {
@@ -373,26 +412,15 @@ export default function AddScheduleScreen() {
                 type="time"
               />
             ) : (
-              <>
-                <TouchableOpacity
-                  style={[styles.input, dynamicStyles.input]}
-                  onPress={() => !loading && setShowStartTimePicker(true)}
-                  disabled={loading}
-                >
-                  <Text style={startTime ? [styles.inputText, dynamicStyles.inputText] : [styles.placeholderText, dynamicStyles.placeholderText]}>
-                    {startTime || '시간 선택'}
-                  </Text>
-                </TouchableOpacity>
-                {showStartTimePicker && (
-                  <DateTimePicker
-                    value={getTimeDate(startTime)}
-                    mode="time"
-                    is24Hour={true}
-                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                    onChange={handleStartTimeChange}
-                  />
-                )}
-              </>
+              <TouchableOpacity
+                style={[styles.input, dynamicStyles.input]}
+                onPress={() => !loading && openStartTimePicker()}
+                disabled={loading}
+              >
+                <Text style={startTime ? [styles.inputText, dynamicStyles.inputText] : [styles.placeholderText, dynamicStyles.placeholderText]}>
+                  {startTime || '시간 선택'}
+                </Text>
+              </TouchableOpacity>
             )}
             <Text style={[styles.hint, dynamicStyles.hint]}>시간을 선택하세요</Text>
           </View>
@@ -411,30 +439,101 @@ export default function AddScheduleScreen() {
                 type="time"
               />
             ) : (
-              <>
-                <TouchableOpacity
-                  style={[styles.input, dynamicStyles.input]}
-                  onPress={() => !loading && setShowEndTimePicker(true)}
-                  disabled={loading}
-                >
-                  <Text style={endTime ? [styles.inputText, dynamicStyles.inputText] : [styles.placeholderText, dynamicStyles.placeholderText]}>
-                    {endTime || '시간 선택'}
-                  </Text>
-                </TouchableOpacity>
-                {showEndTimePicker && (
-                  <DateTimePicker
-                    value={getTimeDate(endTime)}
-                    mode="time"
-                    is24Hour={true}
-                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                    onChange={handleEndTimeChange}
-                  />
-                )}
-              </>
+              <TouchableOpacity
+                style={[styles.input, dynamicStyles.input]}
+                onPress={() => !loading && openEndTimePicker()}
+                disabled={loading}
+              >
+                <Text style={endTime ? [styles.inputText, dynamicStyles.inputText] : [styles.placeholderText, dynamicStyles.placeholderText]}>
+                  {endTime || '시간 선택'}
+                </Text>
+              </TouchableOpacity>
             )}
             <Text style={[styles.hint, dynamicStyles.hint]}>시간을 선택하세요</Text>
           </View>
         </View>
+
+        {/* iOS 시작 시간 모달 */}
+        {Platform.OS === 'ios' && (
+          <Modal
+            visible={showStartTimePicker}
+            transparent={true}
+            animationType="slide"
+          >
+            <View style={styles.modalOverlay}>
+              <View style={[styles.modalContent, { backgroundColor: theme.colors.card }]}>
+                <View style={styles.modalHeader}>
+                  <TouchableOpacity onPress={() => setShowStartTimePicker(false)}>
+                    <Text style={[styles.modalButton, { color: theme.colors.textMuted }]}>취소</Text>
+                  </TouchableOpacity>
+                  <Text style={[styles.modalTitle, { color: theme.colors.text }]}>시작 시간</Text>
+                  <TouchableOpacity onPress={confirmStartTime}>
+                    <Text style={[styles.modalButton, { color: theme.colors.accent }]}>확인</Text>
+                  </TouchableOpacity>
+                </View>
+                <DateTimePicker
+                  value={tempTime}
+                  mode="time"
+                  is24Hour={true}
+                  display="spinner"
+                  onChange={handleStartTimeChange}
+                  style={styles.picker}
+                />
+              </View>
+            </View>
+          </Modal>
+        )}
+
+        {/* iOS 종료 시간 모달 */}
+        {Platform.OS === 'ios' && (
+          <Modal
+            visible={showEndTimePicker}
+            transparent={true}
+            animationType="slide"
+          >
+            <View style={styles.modalOverlay}>
+              <View style={[styles.modalContent, { backgroundColor: theme.colors.card }]}>
+                <View style={styles.modalHeader}>
+                  <TouchableOpacity onPress={() => setShowEndTimePicker(false)}>
+                    <Text style={[styles.modalButton, { color: theme.colors.textMuted }]}>취소</Text>
+                  </TouchableOpacity>
+                  <Text style={[styles.modalTitle, { color: theme.colors.text }]}>종료 시간</Text>
+                  <TouchableOpacity onPress={confirmEndTime}>
+                    <Text style={[styles.modalButton, { color: theme.colors.accent }]}>확인</Text>
+                  </TouchableOpacity>
+                </View>
+                <DateTimePicker
+                  value={tempTime}
+                  mode="time"
+                  is24Hour={true}
+                  display="spinner"
+                  onChange={handleEndTimeChange}
+                  style={styles.picker}
+                />
+              </View>
+            </View>
+          </Modal>
+        )}
+
+        {/* Android 시간 피커 */}
+        {Platform.OS === 'android' && showStartTimePicker && (
+          <DateTimePicker
+            value={getTimeDate(startTime)}
+            mode="time"
+            is24Hour={true}
+            display="default"
+            onChange={handleStartTimeChange}
+          />
+        )}
+        {Platform.OS === 'android' && showEndTimePicker && (
+          <DateTimePicker
+            value={getTimeDate(endTime)}
+            mode="time"
+            is24Hour={true}
+            display="default"
+            onChange={handleEndTimeChange}
+          />
+        )}
 
         <View style={styles.formGroup}>
           <Text style={[styles.label, dynamicStyles.label]}>설명</Text>
@@ -712,5 +811,35 @@ const styles = StyleSheet.create({
   dayButtonTextSelected: {
     color: '#fff',
     fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 30,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  modalTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+  },
+  modalButton: {
+    fontSize: 17,
+    fontWeight: '500',
+  },
+  picker: {
+    height: 200,
   },
 });
