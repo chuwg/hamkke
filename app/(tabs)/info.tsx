@@ -6,6 +6,8 @@ import {
   ScrollView,
   TouchableOpacity,
   RefreshControl,
+  Linking,
+  Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -108,10 +110,19 @@ export default function InfoScreen() {
     router.push(route as any);
   };
 
-  const handleQuickLinkPress = (url: string) => {
-    // 웹에서는 새 창으로, 앱에서는 인앱 브라우저로
-    if (typeof window !== 'undefined') {
+  const handleQuickLinkPress = async (url: string) => {
+    // 웹에서는 새 창으로, 앱에서는 시스템 브라우저로
+    if (Platform.OS === 'web') {
       window.open(url, '_blank');
+    } else {
+      try {
+        const canOpen = await Linking.canOpenURL(url);
+        if (canOpen) {
+          await Linking.openURL(url);
+        }
+      } catch (error) {
+        console.error('URL 열기 실패:', error);
+      }
     }
   };
 
