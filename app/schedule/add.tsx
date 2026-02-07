@@ -10,6 +10,7 @@ import {
   Platform,
   ScrollView,
   ActivityIndicator,
+  SafeAreaView,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -88,10 +89,18 @@ export default function AddScheduleScreen() {
     });
   };
 
+  // 로컬 날짜를 YYYY-MM-DD 형식으로 변환 (UTC 변환 오류 방지)
+  const formatLocalDate = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const handleRecurrenceEndDateChange = (event: any, selectedDate?: Date) => {
     setShowRecurrenceEndDatePicker(false);
     if (selectedDate) {
-      const dateString = selectedDate.toISOString().split('T')[0];
+      const dateString = formatLocalDate(selectedDate);
       setRecurrenceEndDate(dateString);
     }
   };
@@ -99,7 +108,7 @@ export default function AddScheduleScreen() {
   const handleDateChange = (event: any, selectedDate?: Date) => {
     setShowDatePicker(false);
     if (selectedDate) {
-      const dateString = selectedDate.toISOString().split('T')[0];
+      const dateString = formatLocalDate(selectedDate);
       setStartDate(dateString);
     }
   };
@@ -283,17 +292,21 @@ export default function AddScheduleScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={[styles.container, dynamicStyles.container]}
-    >
-      <View style={[styles.header, dynamicStyles.header]}>
-        <TouchableOpacity onPress={() => router.push('/(tabs)/schedule')}>
-          <Text style={[styles.cancelButton, dynamicStyles.cancelButton]}>취소</Text>
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, dynamicStyles.headerTitle]}>일정 추가</Text>
-        <View style={{ width: 50 }} />
-      </View>
+    <SafeAreaView style={[styles.safeArea, dynamicStyles.container]}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={[styles.container, dynamicStyles.container]}
+      >
+        <View style={[styles.header, dynamicStyles.header]}>
+          <TouchableOpacity
+            onPress={() => router.push('/(tabs)/schedule')}
+            style={styles.cancelButtonWrapper}
+          >
+            <Text style={[styles.cancelButton, dynamicStyles.cancelButton]}>취소</Text>
+          </TouchableOpacity>
+          <Text style={[styles.headerTitle, dynamicStyles.headerTitle]}>일정 추가</Text>
+          <View style={{ width: 50 }} />
+        </View>
 
       <ScrollView style={styles.content}>
         <View style={styles.formGroup}>
@@ -544,14 +557,22 @@ export default function AddScheduleScreen() {
           )}
         </TouchableOpacity>
       </ScrollView>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  cancelButtonWrapper: {
+    padding: 5,
+    minWidth: 50,
   },
   header: {
     flexDirection: 'row',

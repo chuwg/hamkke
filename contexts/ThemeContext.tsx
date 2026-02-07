@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useColorScheme } from 'react-native';
+import { useColorScheme, Appearance } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // 테마 색상 정의 - 따뜻한 민트 (Warm Mint)
@@ -117,10 +117,22 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const systemColorScheme = useColorScheme();
   const [themeMode, setThemeModeState] = useState<ThemeMode>('system');
   const [isLoaded, setIsLoaded] = useState(false);
+  // 시스템 테마 변경 실시간 감지를 위한 state
+  const [systemTheme, setSystemTheme] = useState<'light' | 'dark' | null>(
+    Appearance.getColorScheme()
+  );
 
   // 저장된 테마 설정 불러오기
   useEffect(() => {
     loadThemeMode();
+  }, []);
+
+  // 시스템 테마 변경 리스너
+  useEffect(() => {
+    const subscription = Appearance.addChangeListener(({ colorScheme }) => {
+      setSystemTheme(colorScheme);
+    });
+    return () => subscription.remove();
   }, []);
 
   const loadThemeMode = async () => {
@@ -145,9 +157,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // 실제 적용될 테마 결정
+  // 실제 적용될 테마 결정 (systemTheme 우선, fallback으로 systemColorScheme)
+  const currentSystemTheme = systemTheme ?? systemColorScheme;
   const isDark = themeMode === 'system'
-    ? systemColorScheme === 'dark'
+    ? currentSystemTheme === 'dark'
     : themeMode === 'dark';
 
   const theme = isDark ? darkTheme : lightTheme;

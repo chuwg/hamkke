@@ -52,6 +52,30 @@ const QUICK_LINKS = [
   { title: '장애인권익옹호기관', url: 'https://www.naapd.or.kr', icon: '⚖️' },
 ];
 
+const RECENT_UPDATES = [
+  {
+    id: '1',
+    title: '2026년 장애인 복지서비스 안내',
+    date: 'NEW',
+    isNew: true,
+    url: 'https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do',
+  },
+  {
+    id: '2',
+    title: '특수교육대상자 선정 절차 가이드',
+    date: '01.09',
+    isNew: false,
+    url: 'https://www.nise.go.kr/sub/info.do?m=0101&s=nise',
+  },
+  {
+    id: '3',
+    title: '발달재활서비스 바우처 신청 방법',
+    date: '01.05',
+    isNew: false,
+    url: 'https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00004441',
+  },
+];
+
 export default function InfoScreen() {
   const router = useRouter();
   const { theme } = useTheme();
@@ -152,18 +176,21 @@ export default function InfoScreen() {
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, ds.sectionTitle]}>최근 업데이트</Text>
         <View style={[styles.updateCard, ds.updateCard]}>
-          <View style={[styles.updateItem, ds.updateItemBorder]}>
-            <Text style={styles.updateBadge}>NEW</Text>
-            <Text style={[styles.updateText, ds.updateText]}>2026년 장애인 복지서비스 안내</Text>
-          </View>
-          <View style={[styles.updateItem, ds.updateItemBorder]}>
-            <Text style={[styles.updateDate, ds.updateDate]}>01.09</Text>
-            <Text style={[styles.updateText, ds.updateText]}>특수교육대상자 선정 절차 가이드</Text>
-          </View>
-          <View style={[styles.updateItem, ds.updateItemBorder]}>
-            <Text style={[styles.updateDate, ds.updateDate]}>01.05</Text>
-            <Text style={[styles.updateText, ds.updateText]}>발달재활서비스 바우처 신청 방법</Text>
-          </View>
+          {RECENT_UPDATES.map((update) => (
+            <TouchableOpacity
+              key={update.id}
+              style={[styles.updateItem, ds.updateItemBorder]}
+              onPress={() => handleQuickLinkPress(update.url)}
+            >
+              {update.isNew ? (
+                <Text style={styles.updateBadge}>NEW</Text>
+              ) : (
+                <Text style={[styles.updateDate, ds.updateDate]}>{update.date}</Text>
+              )}
+              <Text style={[styles.updateText, ds.updateText]}>{update.title}</Text>
+              <Text style={[styles.updateArrow, ds.categoryArrow]}>›</Text>
+            </TouchableOpacity>
+          ))}
         </View>
       </View>
 
@@ -303,5 +330,10 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     color: '#333',
+  },
+  updateArrow: {
+    fontSize: 18,
+    color: '#ccc',
+    marginLeft: 8,
   },
 });

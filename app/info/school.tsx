@@ -508,9 +508,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#FAFAFA',
     overflow: 'hidden',
+    minHeight: 50,
   },
   picker: {
     height: 50,
+    width: '100%',
   },
   searchButton: {
     backgroundColor: '#4CAF50',
