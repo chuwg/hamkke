@@ -189,7 +189,7 @@ export default function SchoolScreen() {
               <Picker
                 selectedValue={selectedSido}
                 onValueChange={handleSidoChange}
-                style={[styles.picker, { color: theme.colors.text }]}
+                style={[styles.picker, { color: theme.colors.text, height: Platform.OS === 'ios' ? 150 : 50 }]}
               >
                 <Picker.Item label="시/도 선택" value="" color={theme.colors.text} />
                 {SIDO_CODES.filter((s) => s.code !== '').map((sido) => (
@@ -206,7 +206,7 @@ export default function SchoolScreen() {
               <Picker
                 selectedValue={selectedSgg}
                 onValueChange={setSelectedSgg}
-                style={[styles.picker, { color: theme.colors.text }]}
+                style={[styles.picker, { color: theme.colors.text, height: Platform.OS === 'ios' ? 150 : 50 }]}
                 enabled={sggCodes.length > 0}
               >
                 <Picker.Item
@@ -228,7 +228,7 @@ export default function SchoolScreen() {
               <Picker
                 selectedValue={selectedLevel}
                 onValueChange={setSelectedLevel}
-                style={[styles.picker, { color: theme.colors.text }]}
+                style={[styles.picker, { color: theme.colors.text, height: Platform.OS === 'ios' ? 150 : 50 }]}
               >
                 {SCHOOL_LEVEL_CODES.map((level) => (
                   <Picker.Item key={level.code} label={level.name} value={level.code} color={theme.colors.text} />
@@ -511,7 +511,6 @@ const styles = StyleSheet.create({
     minHeight: 50,
   },
   picker: {
-    height: 50,
     width: '100%',
   },
   searchButton: {
