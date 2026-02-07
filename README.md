@@ -4,9 +4,9 @@
 
 ## 주요 기능
 
-### 인증
-- 회원가입 / 로그인
-- Supabase 인증 연동
+### 온보딩
+- 첫 실행 시 앱 소개 슬라이드
+- 로컬 저장소 기반 (로그인 불필요)
 
 ### 자녀 프로필
 - 자녀 추가 / 수정 / 삭제
@@ -44,8 +44,16 @@
 - 통계 카드
 - 빠른 액션 버튼 (일정, 치료기록, 마일스톤, 감각평가 등)
 
+### 정보 탭
+- 특수학급 설치 학교 검색 (공공데이터 API)
+- 복지시설 검색 (장애인복지관, 발달재활센터)
+- 지원 서비스 안내 (바우처, 지원금)
+- 교육/진학 가이드
+- 유용한 사이트 바로가기
+
 ### UI/UX
-- 하단 Footer 네비게이션 (홈, 일정, 기록, 프로필)
+- 하단 Footer 네비게이션 (홈, 일정, 정보, 기록, 프로필)
+- 다크모드 지원 (라이트/다크/시스템)
 - 당겨서 새로고침
 - 웹/모바일 호환
 - 커스텀 SVG 차트 컴포넌트
@@ -54,25 +62,28 @@
 
 | 분류 | 기술 |
 |------|------|
-| Frontend | React Native + Expo (SDK 54) |
+| Frontend | React Native + Expo (SDK 52) |
 | Routing | Expo Router (파일 기반) |
-| Backend | Supabase (PostgreSQL) |
+| Storage | AsyncStorage (로컬) |
 | Language | TypeScript |
 | Calendar | expo-calendar |
+| Notifications | expo-notifications |
 | Charts | react-native-svg |
+| Build | EAS Build |
 
 ## 프로젝트 구조
 
 ```
 hamkke/
 ├── app/                    # Expo Router 화면
-│   ├── (auth)/            # 인증 화면 (로그인, 회원가입)
-│   ├── (tabs)/            # 탭 네비게이션 (홈, 일정, 기록, 프로필)
+│   ├── (tabs)/            # 탭 네비게이션 (홈, 일정, 정보, 기록, 프로필)
 │   ├── child/             # 자녀 관리 화면
+│   ├── info/              # 정보 화면 (학교, 복지시설, 지원서비스)
 │   ├── milestone/         # 마일스톤 화면
 │   ├── schedule/          # 일정 화면
 │   ├── sensory/           # 감각 프로파일 화면
 │   ├── therapy/           # 치료 기록 화면
+│   ├── onboarding.tsx     # 온보딩 화면
 │   └── _layout.tsx        # 루트 레이아웃
 ├── components/            # 재사용 컴포넌트
 │   ├── BarChart.tsx       # 막대 차트
@@ -80,16 +91,18 @@ hamkke/
 │   ├── RadarChart.tsx     # 레이더 차트
 │   └── FooterNav.tsx      # 하단 네비게이션
 ├── contexts/              # React Context
-│   ├── AuthContext.tsx    # 인증 상태
-│   └── ChildContext.tsx   # 선택된 자녀
-├── services/              # API 서비스
-│   ├── database.ts        # Supabase CRUD
-│   └── calendar.ts        # 네이티브 캘린더
+│   ├── ChildContext.tsx   # 선택된 자녀
+│   └── ThemeContext.tsx   # 테마 (다크모드)
+├── services/              # 서비스
+│   ├── localStorage.ts    # AsyncStorage CRUD
+│   ├── calendar.ts        # 네이티브 캘린더
+│   ├── notifications.ts   # 푸시 알림
+│   ├── welfareApi.ts      # 복지시설 API
+│   └── schoolInfoApi.ts   # 학교정보 API
 ├── utils/                 # 유틸리티 함수
 │   └── dateFormat.ts      # 날짜 포맷
-├── types/                 # TypeScript 타입
-│   └── index.ts           # 타입 정의
-└── migrations/            # DB 마이그레이션
+└── types/                 # TypeScript 타입
+    └── index.ts           # 타입 정의
 ```
 
 ## 시작하기
@@ -99,16 +112,7 @@ hamkke/
 npm install
 ```
 
-### 2. Supabase 설정
-1. [Supabase](https://supabase.com)에서 프로젝트 생성
-2. `.env` 파일 생성:
-```
-EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
-EXPO_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
-```
-3. `supabase-schema.sql` 실행하여 테이블 생성
-
-### 3. 앱 실행
+### 2. 앱 실행
 ```bash
 # Web
 npm run web
@@ -120,9 +124,54 @@ npm run ios
 npm run android
 ```
 
+### 3. 빌드 (EAS)
+```bash
+# iOS 빌드
+eas build --platform ios
+
+# Android 빌드
+eas build --platform android
+```
+
 ---
 
 ## 개발 히스토리
+
+### 2026-02-07
+- **버그 수정**
+  - 날짜 표시 오류 수정 (31일이 30일로 표시되는 UTC 변환 문제)
+  - 시스템 다크모드 실시간 반영 안되는 문제 수정
+  - 일정 추가 화면 취소 버튼 터치 영역 개선 (SafeAreaView 추가)
+  - 특수학급 검색 Picker 클릭 안되는 문제 수정
+  - 복지시설 검색 에러 메시지 개선
+
+- **기능 개선**
+  - 정보 탭 최근 업데이트 클릭 시 관련 사이트로 이동 기능 추가
+
+### 2026-01-31
+- **로컬 저장소 마이그레이션**
+  - Supabase → AsyncStorage로 데이터 저장 방식 변경
+  - 인증 시스템 제거 (로그인 없이 바로 사용)
+  - 오프라인 사용 지원
+
+- **푸시 알림 추가**
+  - 일정 알림 기능 (n분 전 알림)
+  - expo-notifications 연동
+
+- **앱 아이콘 및 스플래시 업데이트**
+  - 새로운 앱 아이콘 적용
+  - EAS 빌드 설정 추가
+
+### 2026-01-27
+- 개인정보처리방침 추가 (App Store 제출용)
+
+### 2026-01-15
+- **다크모드 지원**
+  - 라이트/다크/시스템 테마 선택
+  - 전체 화면 다크모드 적용
+
+- **온보딩 화면 추가**
+  - 첫 실행 시 앱 소개 슬라이드 표시
 
 ### 2026-01-10
 - Footer 네비게이션 추가 (마일스톤, 감각 프로파일 화면)
