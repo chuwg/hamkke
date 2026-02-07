@@ -14,7 +14,7 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useChild } from '../../../contexts/ChildContext';
-import { schedulesApi } from '../../../services/database';
+import { schedulesApi } from '../../../services/localStorage';
 import { Schedule, RecurrenceRule } from '../../../types';
 import { formatTimeString, isValidTime, toLocalISOString } from '../../../utils/dateFormat';
 import { calendarService } from '../../../services/calendar';

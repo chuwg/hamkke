@@ -10,7 +10,8 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useChild } from '../../contexts/ChildContext';
-import { sensoryProfilesApi } from '../../services/database';
+import { useTheme } from '../../contexts/ThemeContext';
+import { sensoryProfilesApi } from '../../services/localStorage';
 import { SensoryProfile } from '../../types';
 import RadarChart from '../../components/RadarChart';
 import FooterNav from '../../components/FooterNav';
@@ -26,9 +27,39 @@ const SENSORY_TYPES = [
 
 export default function SensoryProfileListScreen() {
   const { selectedChild } = useChild();
+  const { theme } = useTheme();
   const [profiles, setProfiles] = useState<SensoryProfile[]>([]);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  const ds = {
+    container: { backgroundColor: theme.colors.background },
+    header: { borderBottomColor: theme.colors.border },
+    title: { color: theme.colors.text },
+    subtitle: { color: theme.colors.textMuted },
+    addButton: { backgroundColor: theme.colors.accent },
+    statsContainer: { borderBottomColor: theme.colors.border },
+    statCard: { backgroundColor: theme.colors.card },
+    statNumber: { color: theme.colors.accent },
+    statLabel: { color: theme.colors.textSecondary },
+    listTitle: { color: theme.colors.text },
+    chartContainer: { backgroundColor: theme.colors.card },
+    chartTitle: { color: theme.colors.text },
+    chartDate: { color: theme.colors.textSecondary },
+    chartStatValue: { color: theme.colors.accent },
+    chartStatLabel: { color: theme.colors.textSecondary },
+    emptyText: { color: theme.colors.textMuted },
+    emptyButton: { backgroundColor: theme.colors.accent },
+    profileCard: { backgroundColor: theme.colors.card },
+    profileDate: { color: theme.colors.text },
+    profileAverage: { color: theme.colors.accent },
+    sensoryName: { color: theme.colors.text },
+    scoreBarBackground: { backgroundColor: theme.colors.border },
+    scoreText: { color: theme.colors.text },
+    profileNotes: { color: theme.colors.textSecondary },
+    profileActionsBorder: { borderTopColor: theme.colors.border },
+    actionButton: { backgroundColor: theme.colors.accent },
+  };
 
   useEffect(() => {
     if (selectedChild) {
@@ -111,23 +142,23 @@ export default function SensoryProfileListScreen() {
 
   if (!selectedChild) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, ds.container]}>
         <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>프로필 탭에서 자녀를 선택해주세요</Text>
+          <Text style={[styles.emptyText, ds.emptyText]}>프로필 탭에서 자녀를 선택해주세요</Text>
         </View>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
+    <View style={[styles.container, ds.container]}>
+      <View style={[styles.header, ds.header]}>
         <View style={styles.headerTop}>
           <View>
-            <Text style={styles.title}>감각 프로파일</Text>
-            <Text style={styles.subtitle}>{selectedChild.name}의 감각 평가</Text>
+            <Text style={[styles.title, ds.title]}>감각 프로파일</Text>
+            <Text style={[styles.subtitle, ds.subtitle]}>{selectedChild.name}의 감각 평가</Text>
           </View>
-          <TouchableOpacity style={styles.addButton} onPress={handleAddProfile}>
+          <TouchableOpacity style={[styles.addButton, ds.addButton]} onPress={handleAddProfile}>
             <Text style={styles.addButtonText}>+ 추가</Text>
           </TouchableOpacity>
         </View>
@@ -135,28 +166,28 @@ export default function SensoryProfileListScreen() {
 
       {/* 통계 카드 */}
       {profiles.length > 0 && (
-        <View style={styles.statsContainer}>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{latestAverage}</Text>
-            <Text style={styles.statLabel}>평균 점수</Text>
+        <View style={[styles.statsContainer, ds.statsContainer]}>
+          <View style={[styles.statCard, ds.statCard]}>
+            <Text style={[styles.statNumber, ds.statNumber]}>{latestAverage}</Text>
+            <Text style={[styles.statLabel, ds.statLabel]}>평균 점수</Text>
           </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{profiles.length}</Text>
-            <Text style={styles.statLabel}>총 기록</Text>
+          <View style={[styles.statCard, ds.statCard]}>
+            <Text style={[styles.statNumber, ds.statNumber]}>{profiles.length}</Text>
+            <Text style={[styles.statLabel, ds.statLabel]}>총 기록</Text>
           </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{latestProfile ? getShortDate(latestProfile.date) : '-'}</Text>
-            <Text style={styles.statLabel}>최근 평가</Text>
+          <View style={[styles.statCard, ds.statCard]}>
+            <Text style={[styles.statNumber, ds.statNumber]}>{latestProfile ? getShortDate(latestProfile.date) : '-'}</Text>
+            <Text style={[styles.statLabel, ds.statLabel]}>최근 평가</Text>
           </View>
         </View>
       )}
 
       {loading ? (
-        <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 20 }} />
+        <ActivityIndicator size="large" color={theme.colors.accent} style={{ marginTop: 20 }} />
       ) : profiles.length === 0 ? (
         <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>등록된 감각 프로파일이 없습니다</Text>
-          <TouchableOpacity style={styles.emptyButton} onPress={handleAddProfile}>
+          <Text style={[styles.emptyText, ds.emptyText]}>등록된 감각 프로파일이 없습니다</Text>
+          <TouchableOpacity style={[styles.emptyButton, ds.emptyButton]} onPress={handleAddProfile}>
             <Text style={styles.emptyButtonText}>첫 프로파일 추가하기</Text>
           </TouchableOpacity>
         </View>
@@ -165,10 +196,10 @@ export default function SensoryProfileListScreen() {
           data={profiles}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <View style={styles.profileCard}>
+            <View style={[styles.profileCard, ds.profileCard]}>
               <View style={styles.profileHeader}>
-                <Text style={styles.profileDate}>{formatDate(item.date)}</Text>
-                <Text style={styles.profileAverage}>평균: {calculateAverage(item)}</Text>
+                <Text style={[styles.profileDate, ds.profileDate]}>{formatDate(item.date)}</Text>
+                <Text style={[styles.profileAverage, ds.profileAverage]}>평균: {calculateAverage(item)}</Text>
               </View>
 
               <View style={styles.sensoryGrid}>
@@ -177,9 +208,9 @@ export default function SensoryProfileListScreen() {
                   return (
                     <View key={type.key} style={styles.sensoryItem}>
                       <Text style={styles.sensoryIcon}>{type.icon}</Text>
-                      <Text style={styles.sensoryName}>{type.name}</Text>
+                      <Text style={[styles.sensoryName, ds.sensoryName]}>{type.name}</Text>
                       <View style={styles.scoreContainer}>
-                        <View style={styles.scoreBarBackground}>
+                        <View style={[styles.scoreBarBackground, ds.scoreBarBackground]}>
                           <View
                             style={[
                               styles.scoreBar,
@@ -190,7 +221,7 @@ export default function SensoryProfileListScreen() {
                             ]}
                           />
                         </View>
-                        <Text style={styles.scoreText}>{score}</Text>
+                        <Text style={[styles.scoreText, ds.scoreText]}>{score}</Text>
                       </View>
                     </View>
                   );
@@ -198,14 +229,14 @@ export default function SensoryProfileListScreen() {
               </View>
 
               {item.notes && (
-                <Text style={styles.profileNotes} numberOfLines={2}>
+                <Text style={[styles.profileNotes, ds.profileNotes]} numberOfLines={2}>
                   📝 {item.notes}
                 </Text>
               )}
 
-              <View style={styles.profileActions}>
+              <View style={[styles.profileActions, ds.profileActionsBorder]}>
                 <TouchableOpacity
-                  style={styles.actionButton}
+                  style={[styles.actionButton, ds.actionButton]}
                   onPress={() => handleEditProfile(item.id)}
                 >
                   <Text style={styles.actionButtonText}>수정</Text>
@@ -220,13 +251,13 @@ export default function SensoryProfileListScreen() {
             </View>
           )}
           ListHeaderComponent={
-            <Text style={styles.listTitle}>기록 목록</Text>
+            <Text style={[styles.listTitle, ds.listTitle]}>기록 목록</Text>
           }
           ListFooterComponent={
             latestProfile ? (
-              <View style={styles.chartContainer}>
-                <Text style={styles.chartTitle}>감각 프로파일 요약</Text>
-                <Text style={styles.chartDate}>최근: {formatDate(latestProfile.date)}</Text>
+              <View style={[styles.chartContainer, ds.chartContainer]}>
+                <Text style={[styles.chartTitle, ds.chartTitle]}>감각 프로파일 요약</Text>
+                <Text style={[styles.chartDate, ds.chartDate]}>최근: {formatDate(latestProfile.date)}</Text>
                 <RadarChart
                   data={SENSORY_TYPES.map(type => ({
                     label: type.shortName,
@@ -235,16 +266,16 @@ export default function SensoryProfileListScreen() {
                   }))}
                   size={280}
                   maxValue={10}
-                  color="#007AFF"
+                  color={theme.colors.accent}
                 />
                 <View style={styles.chartStats}>
                   <View style={styles.chartStat}>
-                    <Text style={styles.chartStatValue}>{latestAverage}</Text>
-                    <Text style={styles.chartStatLabel}>평균 점수</Text>
+                    <Text style={[styles.chartStatValue, ds.chartStatValue]}>{latestAverage}</Text>
+                    <Text style={[styles.chartStatLabel, ds.chartStatLabel]}>평균 점수</Text>
                   </View>
                   <View style={styles.chartStat}>
-                    <Text style={styles.chartStatValue}>{profiles.length}</Text>
-                    <Text style={styles.chartStatLabel}>총 기록</Text>
+                    <Text style={[styles.chartStatValue, ds.chartStatValue]}>{profiles.length}</Text>
+                    <Text style={[styles.chartStatLabel, ds.chartStatLabel]}>총 기록</Text>
                   </View>
                 </View>
               </View>

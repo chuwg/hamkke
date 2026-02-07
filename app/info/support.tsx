@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import FooterNav from '../../components/FooterNav';
+import { useTheme } from '../../contexts/ThemeContext';
 
 // 지원 서비스 카테고리
 const SUPPORT_CATEGORIES = [
@@ -115,8 +116,36 @@ const FAQ = [
 
 export default function SupportServiceScreen() {
   const router = useRouter();
+  const { theme } = useTheme();
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
+
+  const ds = {
+    container: { backgroundColor: theme.colors.background },
+    header: { backgroundColor: theme.colors.card, borderBottomColor: theme.colors.border },
+    title: { color: theme.colors.text },
+    subtitle: { color: theme.colors.textSecondary },
+    infoBox: { backgroundColor: theme.colors.accentLight },
+    infoTitle: { color: theme.colors.accent },
+    infoText: { color: theme.colors.accent },
+    sectionTitle: { color: theme.colors.text },
+    serviceCard: { backgroundColor: theme.colors.card },
+    serviceTitle: { color: theme.colors.text },
+    serviceDesc: { color: theme.colors.textSecondary },
+    expandIcon: { color: theme.colors.textMuted },
+    serviceDetails: { backgroundColor: theme.colors.surface, borderTopColor: theme.colors.border },
+    detailLabel: { color: theme.colors.textSecondary },
+    detailValue: { color: theme.colors.text },
+    detailList: { borderTopColor: theme.colors.border },
+    detailListTitle: { color: theme.colors.text },
+    detailListItem: { color: theme.colors.textSecondary },
+    faqCard: { backgroundColor: theme.colors.card },
+    faqQuestion: { color: theme.colors.text },
+    faqIcon: { color: theme.colors.accent },
+    faqAnswer: { color: theme.colors.textSecondary, borderTopColor: theme.colors.border },
+    linkButton: { backgroundColor: theme.colors.card },
+    linkText: { color: theme.colors.text },
+  };
 
   const toggleCard = (id: string) => {
     setExpandedCard(expandedCard === id ? null : id);
@@ -127,22 +156,22 @@ export default function SupportServiceScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, ds.container]}>
       <ScrollView style={styles.content}>
         {/* 헤더 */}
-        <View style={styles.header}>
-          <Text style={styles.title}>지원 서비스 안내</Text>
-          <Text style={styles.subtitle}>
+        <View style={[styles.header, ds.header]}>
+          <Text style={[styles.title, ds.title]}>지원 서비스 안내</Text>
+          <Text style={[styles.subtitle, ds.subtitle]}>
             장애아동 및 가족을 위한 지원 서비스
           </Text>
         </View>
 
         {/* 안내 박스 */}
-        <View style={styles.infoBox}>
+        <View style={[styles.infoBox, ds.infoBox]}>
           <Text style={styles.infoIcon}>📋</Text>
           <View style={styles.infoContent}>
-            <Text style={styles.infoTitle}>신청 전 확인하세요!</Text>
-            <Text style={styles.infoText}>
+            <Text style={[styles.infoTitle, ds.infoTitle]}>신청 전 확인하세요!</Text>
+            <Text style={[styles.infoText, ds.infoText]}>
               각 서비스마다 자격 요건과 신청 방법이 다릅니다.{'\n'}
               자세한 내용은 주민센터 또는 복지로에서 확인하세요.
             </Text>
@@ -151,43 +180,43 @@ export default function SupportServiceScreen() {
 
         {/* 지원 서비스 목록 */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>지원 서비스</Text>
+          <Text style={[styles.sectionTitle, ds.sectionTitle]}>지원 서비스</Text>
           {SUPPORT_CATEGORIES.map((service) => (
             <TouchableOpacity
               key={service.id}
-              style={styles.serviceCard}
+              style={[styles.serviceCard, ds.serviceCard]}
               onPress={() => toggleCard(service.id)}
               activeOpacity={0.7}
             >
               <View style={styles.serviceHeader}>
                 <Text style={styles.serviceIcon}>{service.icon}</Text>
                 <View style={styles.serviceInfo}>
-                  <Text style={styles.serviceTitle}>{service.title}</Text>
-                  <Text style={styles.serviceDesc}>{service.description}</Text>
+                  <Text style={[styles.serviceTitle, ds.serviceTitle]}>{service.title}</Text>
+                  <Text style={[styles.serviceDesc, ds.serviceDesc]}>{service.description}</Text>
                 </View>
-                <Text style={styles.expandIcon}>
+                <Text style={[styles.expandIcon, ds.expandIcon]}>
                   {expandedCard === service.id ? '▲' : '▼'}
                 </Text>
               </View>
 
               {expandedCard === service.id && (
-                <View style={styles.serviceDetails}>
+                <View style={[styles.serviceDetails, ds.serviceDetails]}>
                   <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>대상</Text>
-                    <Text style={styles.detailValue}>{service.eligibility}</Text>
+                    <Text style={[styles.detailLabel, ds.detailLabel]}>대상</Text>
+                    <Text style={[styles.detailValue, ds.detailValue]}>{service.eligibility}</Text>
                   </View>
                   <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>지원 금액</Text>
-                    <Text style={styles.detailValue}>{service.amount}</Text>
+                    <Text style={[styles.detailLabel, ds.detailLabel]}>지원 금액</Text>
+                    <Text style={[styles.detailValue, ds.detailValue]}>{service.amount}</Text>
                   </View>
                   <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>신청 방법</Text>
-                    <Text style={styles.detailValue}>{service.howTo}</Text>
+                    <Text style={[styles.detailLabel, ds.detailLabel]}>신청 방법</Text>
+                    <Text style={[styles.detailValue, ds.detailValue]}>{service.howTo}</Text>
                   </View>
-                  <View style={styles.detailList}>
-                    <Text style={styles.detailListTitle}>상세 내용</Text>
+                  <View style={[styles.detailList, ds.detailList]}>
+                    <Text style={[styles.detailListTitle, ds.detailListTitle]}>상세 내용</Text>
                     {service.details.map((detail, idx) => (
-                      <Text key={idx} style={styles.detailListItem}>
+                      <Text key={idx} style={[styles.detailListItem, ds.detailListItem]}>
                         • {detail}
                       </Text>
                     ))}
@@ -200,22 +229,22 @@ export default function SupportServiceScreen() {
 
         {/* 자주 묻는 질문 */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>자주 묻는 질문</Text>
+          <Text style={[styles.sectionTitle, ds.sectionTitle]}>자주 묻는 질문</Text>
           {FAQ.map((faq, index) => (
             <TouchableOpacity
               key={index}
-              style={styles.faqCard}
+              style={[styles.faqCard, ds.faqCard]}
               onPress={() => toggleFaq(index)}
               activeOpacity={0.7}
             >
               <View style={styles.faqHeader}>
-                <Text style={styles.faqQuestion}>Q. {faq.question}</Text>
-                <Text style={styles.faqIcon}>
+                <Text style={[styles.faqQuestion, ds.faqQuestion]}>Q. {faq.question}</Text>
+                <Text style={[styles.faqIcon, ds.faqIcon]}>
                   {expandedFaq === index ? '−' : '+'}
                 </Text>
               </View>
               {expandedFaq === index && (
-                <Text style={styles.faqAnswer}>A. {faq.answer}</Text>
+                <Text style={[styles.faqAnswer, ds.faqAnswer]}>A. {faq.answer}</Text>
               )}
             </TouchableOpacity>
           ))}
@@ -223,10 +252,10 @@ export default function SupportServiceScreen() {
 
         {/* 유용한 링크 */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>관련 사이트</Text>
+          <Text style={[styles.sectionTitle, ds.sectionTitle]}>관련 사이트</Text>
           <View style={styles.linksContainer}>
             <TouchableOpacity
-              style={styles.linkButton}
+              style={[styles.linkButton, ds.linkButton]}
               onPress={() => {
                 if (typeof window !== 'undefined') {
                   window.open('https://www.bokjiro.go.kr', '_blank');
@@ -234,10 +263,10 @@ export default function SupportServiceScreen() {
               }}
             >
               <Text style={styles.linkIcon}>🌐</Text>
-              <Text style={styles.linkText}>복지로</Text>
+              <Text style={[styles.linkText, ds.linkText]}>복지로</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.linkButton}
+              style={[styles.linkButton, ds.linkButton]}
               onPress={() => {
                 if (typeof window !== 'undefined') {
                   window.open('https://www.socialservice.or.kr', '_blank');
@@ -245,10 +274,10 @@ export default function SupportServiceScreen() {
               }}
             >
               <Text style={styles.linkIcon}>🎫</Text>
-              <Text style={styles.linkText}>사회서비스</Text>
+              <Text style={[styles.linkText, ds.linkText]}>사회서비스</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.linkButton}
+              style={[styles.linkButton, ds.linkButton]}
               onPress={() => {
                 if (typeof window !== 'undefined') {
                   window.open('https://www.129.go.kr', '_blank');
@@ -256,7 +285,7 @@ export default function SupportServiceScreen() {
               }}
             >
               <Text style={styles.linkIcon}>📞</Text>
-              <Text style={styles.linkText}>정부24</Text>
+              <Text style={[styles.linkText, ds.linkText]}>정부24</Text>
             </TouchableOpacity>
           </View>
         </View>

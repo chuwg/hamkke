@@ -14,7 +14,7 @@ import {
 import { useRouter } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useChild } from '../../contexts/ChildContext';
-import { milestonesApi } from '../../services/database';
+import { milestonesApi } from '../../services/localStorage';
 
 const CATEGORIES = [
   { id: 'social', name: '사회성', icon: '👥' },

@@ -12,7 +12,7 @@ import { useRouter } from 'expo-router';
 import { Calendar } from 'react-native-calendars';
 import { useChild } from '../../contexts/ChildContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import { schedulesApi } from '../../services/database';
+import { schedulesApi } from '../../services/localStorage';
 import { Schedule, RecurrenceRule } from '../../types';
 import { calendarService } from '../../services/calendar';
 
@@ -65,7 +65,7 @@ function expandRecurringSchedules(schedules: Schedule[], startDate: Date, endDat
 
 export default function ScheduleScreen() {
   const { selectedChild } = useChild();
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
@@ -265,6 +265,7 @@ export default function ScheduleScreen() {
         <>
           {viewMode === 'calendar' && (
             <Calendar
+              key={isDark ? 'dark' : 'light'}
               markedDates={getMarkedDates()}
               onDayPress={(day) => {
                 setSelectedDate(day.dateString);

@@ -2,48 +2,52 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { useColorScheme } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// 테마 색상 정의
+// 테마 색상 정의 - 따뜻한 민트 (Warm Mint)
 export const lightTheme = {
   mode: 'light' as const,
   colors: {
     // 기본 배경
-    background: '#F8F9FA',
+    background: '#F7FFF7',
     surface: '#FFFFFF',
     card: '#FFFFFF',
 
     // 텍스트
-    text: '#1a1a1a',
-    textSecondary: '#666666',
-    textMuted: '#999999',
+    text: '#2C3E50',
+    textSecondary: '#5D6D7E',
+    textMuted: '#95A5A6',
 
-    // 브랜드 색상
-    primary: '#4CAF50',
-    primaryLight: '#E8F5E9',
-    primaryDark: '#2E7D32',
+    // 브랜드 색상 (민트)
+    primary: '#4ECDC4',
+    primaryLight: '#E0F7F5',
+    primaryDark: '#3AAFA9',
 
-    // 액센트
-    accent: '#007AFF',
-    accentLight: '#E3F2FD',
+    // 액센트 (코랄 핑크)
+    accent: '#FF6B6B',
+    accentLight: '#FFE8E8',
+
+    // 세컨더리 (따뜻한 노랑)
+    secondary: '#FFE66D',
+    secondaryLight: '#FFF9E0',
 
     // 상태 색상
-    success: '#4CAF50',
-    warning: '#FF9800',
-    error: '#F44336',
-    info: '#2196F3',
+    success: '#4ECDC4',
+    warning: '#FFE66D',
+    error: '#FF6B6B',
+    info: '#74B9FF',
 
     // 경계선
-    border: '#E0E0E0',
-    borderLight: '#F0F0F0',
+    border: '#E8F5F3',
+    borderLight: '#F0FAF8',
 
     // 기타
-    shadow: '#000000',
-    overlay: 'rgba(0, 0, 0, 0.5)',
+    shadow: '#2C3E50',
+    overlay: 'rgba(44, 62, 80, 0.5)',
 
     // 네비게이션
     tabBar: '#FFFFFF',
-    tabBarBorder: '#E0E0E0',
-    tabActive: '#4CAF50',
-    tabInactive: '#999999',
+    tabBarBorder: '#E8F5F3',
+    tabActive: '#4ECDC4',
+    tabInactive: '#95A5A6',
   },
 };
 
@@ -51,47 +55,51 @@ export const darkTheme = {
   mode: 'dark' as const,
   colors: {
     // 기본 배경
-    background: '#121212',
-    surface: '#1E1E1E',
-    card: '#2C2C2C',
+    background: '#1A2634',
+    surface: '#243447',
+    card: '#2C3E50',
 
     // 텍스트
     text: '#FFFFFF',
-    textSecondary: '#B0B0B0',
-    textMuted: '#808080',
+    textSecondary: '#B8C5D0',
+    textMuted: '#7F8C9A',
 
-    // 브랜드 색상
-    primary: '#66BB6A',
-    primaryLight: '#1B3D1F',
-    primaryDark: '#81C784',
+    // 브랜드 색상 (민트)
+    primary: '#5DDBCD',
+    primaryLight: '#2A4A48',
+    primaryDark: '#4ECDC4',
 
-    // 액센트
-    accent: '#64B5F6',
-    accentLight: '#1A2733',
+    // 액센트 (코랄 핑크)
+    accent: '#FF8585',
+    accentLight: '#3D2A2A',
+
+    // 세컨더리 (따뜻한 노랑)
+    secondary: '#FFEB8A',
+    secondaryLight: '#3D3A2A',
 
     // 상태 색상
-    success: '#66BB6A',
-    warning: '#FFB74D',
-    error: '#EF5350',
-    info: '#64B5F6',
+    success: '#5DDBCD',
+    warning: '#FFEB8A',
+    error: '#FF8585',
+    info: '#74B9FF',
 
     // 경계선
-    border: '#404040',
-    borderLight: '#333333',
+    border: '#3D5066',
+    borderLight: '#344455',
 
     // 기타
     shadow: '#000000',
     overlay: 'rgba(0, 0, 0, 0.7)',
 
     // 네비게이션
-    tabBar: '#1E1E1E',
-    tabBarBorder: '#333333',
-    tabActive: '#66BB6A',
-    tabInactive: '#808080',
+    tabBar: '#243447',
+    tabBarBorder: '#3D5066',
+    tabActive: '#5DDBCD',
+    tabInactive: '#7F8C9A',
   },
 };
 
-export type Theme = typeof lightTheme;
+export type Theme = typeof lightTheme | typeof darkTheme;
 export type ThemeMode = 'light' | 'dark' | 'system';
 
 interface ThemeContextType {

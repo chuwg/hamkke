@@ -12,7 +12,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useChild } from '../../contexts/ChildContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import { therapyRecordsApi } from '../../services/database';
+import { therapyRecordsApi } from '../../services/localStorage';
 import { TherapyRecord } from '../../types';
 import BarChart from '../../components/BarChart';
 import PieChart from '../../components/PieChart';

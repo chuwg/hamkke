@@ -10,7 +10,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useChild } from '../../contexts/ChildContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import { milestonesApi } from '../../services/database';
+import { milestonesApi } from '../../services/localStorage';
 import { Milestone } from '../../types';
 import FooterNav from '../../components/FooterNav';
 

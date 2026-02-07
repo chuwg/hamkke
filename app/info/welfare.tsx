@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import FooterNav from '../../components/FooterNav';
+import { useTheme } from '../../contexts/ThemeContext';
 import {
   fetchWelfareCenters,
   fetchRehabCenters,
@@ -51,6 +52,7 @@ const REGIONS = [
 
 export default function WelfareSearchScreen() {
   const router = useRouter();
+  const { theme } = useTheme();
   const [selectedType, setSelectedType] = useState('all');
   const [selectedRegion, setSelectedRegion] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -61,6 +63,31 @@ export default function WelfareSearchScreen() {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  const ds = {
+    container: { backgroundColor: theme.colors.background },
+    header: { backgroundColor: theme.colors.card, borderBottomColor: theme.colors.border },
+    title: { color: theme.colors.text },
+    subtitle: { color: theme.colors.textSecondary },
+    filterSection: { backgroundColor: theme.colors.card },
+    filterLabel: { color: theme.colors.textSecondary },
+    typeButton: { backgroundColor: theme.colors.surface },
+    typeText: { color: theme.colors.textSecondary },
+    regionButton: { backgroundColor: theme.colors.surface },
+    regionText: { color: theme.colors.textSecondary },
+    searchInput: { backgroundColor: theme.colors.surface, color: theme.colors.text },
+    tipBox: { backgroundColor: theme.colors.accentLight },
+    tipText: { color: theme.colors.accent },
+    resultsTitle: { color: theme.colors.text },
+    pageInfo: { color: theme.colors.textSecondary },
+    facilityCard: { backgroundColor: theme.colors.card },
+    facilityName: { color: theme.colors.text },
+    facilityAddress: { color: theme.colors.accent },
+    facilityAddressDetail: { color: theme.colors.textSecondary },
+    emptyStateText: { color: theme.colors.textMuted },
+    emptyResultText: { color: theme.colors.textMuted },
+    pageNumber: { color: theme.colors.text },
+  };
 
   const handleSearch = async () => {
     setLoading(true);
@@ -151,19 +178,19 @@ export default function WelfareSearchScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, ds.container]}>
       <ScrollView style={styles.content}>
         {/* 헤더 */}
-        <View style={styles.header}>
-          <Text style={styles.title}>복지시설 찾기</Text>
-          <Text style={styles.subtitle}>
+        <View style={[styles.header, ds.header]}>
+          <Text style={[styles.title, ds.title]}>복지시설 찾기</Text>
+          <Text style={[styles.subtitle, ds.subtitle]}>
             장애인복지관, 발달재활센터를 검색하세요
           </Text>
         </View>
 
         {/* 시설 유형 필터 */}
-        <View style={styles.filterSection}>
-          <Text style={styles.filterLabel}>시설 유형</Text>
+        <View style={[styles.filterSection, ds.filterSection]}>
+          <Text style={[styles.filterLabel, ds.filterLabel]}>시설 유형</Text>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -174,7 +201,9 @@ export default function WelfareSearchScreen() {
                 key={type.code}
                 style={[
                   styles.typeButton,
+                  ds.typeButton,
                   selectedType === type.code && styles.typeButtonSelected,
+                  selectedType === type.code && { backgroundColor: theme.colors.accent },
                 ]}
                 onPress={() => setSelectedType(type.code)}
               >
@@ -182,6 +211,7 @@ export default function WelfareSearchScreen() {
                 <Text
                   style={[
                     styles.typeText,
+                    ds.typeText,
                     selectedType === type.code && styles.typeTextSelected,
                   ]}
                 >
@@ -192,7 +222,7 @@ export default function WelfareSearchScreen() {
           </ScrollView>
 
           {/* 지역 선택 */}
-          <Text style={styles.filterLabel}>지역</Text>
+          <Text style={[styles.filterLabel, ds.filterLabel]}>지역</Text>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -203,14 +233,18 @@ export default function WelfareSearchScreen() {
                 key={region.code}
                 style={[
                   styles.regionButton,
+                  ds.regionButton,
                   selectedRegion === region.code && styles.regionButtonSelected,
+                  selectedRegion === region.code && { backgroundColor: theme.colors.accentLight, borderColor: theme.colors.accent },
                 ]}
                 onPress={() => setSelectedRegion(region.code)}
               >
                 <Text
                   style={[
                     styles.regionText,
+                    ds.regionText,
                     selectedRegion === region.code && styles.regionTextSelected,
+                    selectedRegion === region.code && { color: theme.colors.accent },
                   ]}
                 >
                   {region.name}
@@ -222,22 +256,22 @@ export default function WelfareSearchScreen() {
           {/* 검색어 */}
           <View style={styles.searchRow}>
             <TextInput
-              style={styles.searchInput}
+              style={[styles.searchInput, ds.searchInput]}
               placeholder="시설명, 주소 검색"
               value={searchQuery}
               onChangeText={setSearchQuery}
-              placeholderTextColor="#999"
+              placeholderTextColor={theme.colors.textMuted}
             />
-            <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
+            <TouchableOpacity style={[styles.searchButton, { backgroundColor: theme.colors.accent }]} onPress={handleSearch}>
               <Text style={styles.searchButtonText}>검색</Text>
             </TouchableOpacity>
           </View>
         </View>
 
         {/* 안내 */}
-        <View style={styles.tipBox}>
+        <View style={[styles.tipBox, ds.tipBox]}>
           <Text style={styles.tipIcon}>📡</Text>
-          <Text style={styles.tipText}>
+          <Text style={[styles.tipText, ds.tipText]}>
             공공데이터포털 API를 통해 실시간 정보를 제공합니다.
             {'\n'}장애인복지관 {266}개, 발달재활센터 {2746}개 등록
           </Text>
@@ -247,7 +281,7 @@ export default function WelfareSearchScreen() {
         {loading ? (
           <ActivityIndicator
             size="large"
-            color="#007AFF"
+            color={theme.colors.accent}
             style={{ marginTop: 40 }}
           />
         ) : error ? (
@@ -256,24 +290,24 @@ export default function WelfareSearchScreen() {
           </View>
         ) : hasSearched ? (
           <View style={styles.resultsSection}>
-            <Text style={styles.resultsTitle}>
+            <Text style={[styles.resultsTitle, ds.resultsTitle]}>
               검색 결과 (전체 {facilities.length}개)
             </Text>
-            <Text style={styles.pageInfo}>
+            <Text style={[styles.pageInfo, ds.pageInfo]}>
               {currentPage} / {Math.ceil(facilities.length / itemsPerPage)} 페이지
             </Text>
             {facilities.length === 0 ? (
               <View style={styles.emptyResult}>
-                <Text style={styles.emptyResultText}>검색 결과가 없습니다</Text>
+                <Text style={[styles.emptyResultText, ds.emptyResultText]}>검색 결과가 없습니다</Text>
               </View>
             ) : (
               <>
               {facilities
                 .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
                 .map((facility) => (
-                <View key={facility.id} style={styles.facilityCard}>
+                <View key={facility.id} style={[styles.facilityCard, ds.facilityCard]}>
                   <View style={styles.facilityHeader}>
-                    <Text style={styles.facilityName}>{facility.name}</Text>
+                    <Text style={[styles.facilityName, ds.facilityName]}>{facility.name}</Text>
                     <View
                       style={[
                         styles.facilityTypeBadge,
@@ -291,10 +325,10 @@ export default function WelfareSearchScreen() {
                     </View>
                   </View>
 
-                  <Text style={styles.facilityAddress}>
+                  <Text style={[styles.facilityAddress, ds.facilityAddress]}>
                     {facility.sido} {facility.sigungu}
                   </Text>
-                  <Text style={styles.facilityAddressDetail}>
+                  <Text style={[styles.facilityAddressDetail, ds.facilityAddressDetail]}>
                     {facility.address}
                   </Text>
 
@@ -302,7 +336,7 @@ export default function WelfareSearchScreen() {
                   {facility.phone && (
                     <View style={styles.facilityActions}>
                       <TouchableOpacity
-                        style={styles.actionBtn}
+                        style={[styles.actionBtn, { backgroundColor: theme.colors.accent }]}
                         onPress={() => handleCall(facility.phone!)}
                       >
                         <Text style={styles.actionBtnText}>
@@ -317,7 +351,7 @@ export default function WelfareSearchScreen() {
               {/* 페이지네이션 */}
               <View style={styles.pagination}>
                 <TouchableOpacity
-                  style={[styles.pageBtn, currentPage === 1 && styles.pageBtnDisabled]}
+                  style={[styles.pageBtn, { backgroundColor: theme.colors.accent }, currentPage === 1 && styles.pageBtnDisabled]}
                   onPress={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
                   disabled={currentPage === 1}
                 >
@@ -325,9 +359,9 @@ export default function WelfareSearchScreen() {
                     ◀ 이전
                   </Text>
                 </TouchableOpacity>
-                <Text style={styles.pageNumber}>{currentPage}</Text>
+                <Text style={[styles.pageNumber, ds.pageNumber]}>{currentPage}</Text>
                 <TouchableOpacity
-                  style={[styles.pageBtn, currentPage >= Math.ceil(facilities.length / itemsPerPage) && styles.pageBtnDisabled]}
+                  style={[styles.pageBtn, { backgroundColor: theme.colors.accent }, currentPage >= Math.ceil(facilities.length / itemsPerPage) && styles.pageBtnDisabled]}
                   onPress={() => currentPage < Math.ceil(facilities.length / itemsPerPage) && setCurrentPage(currentPage + 1)}
                   disabled={currentPage >= Math.ceil(facilities.length / itemsPerPage)}
                 >
@@ -342,7 +376,7 @@ export default function WelfareSearchScreen() {
         ) : (
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateIcon}>🏛️</Text>
-            <Text style={styles.emptyStateText}>
+            <Text style={[styles.emptyStateText, ds.emptyStateText]}>
               시설 유형과 지역을 선택하고{'\n'}검색 버튼을 눌러주세요
             </Text>
           </View>

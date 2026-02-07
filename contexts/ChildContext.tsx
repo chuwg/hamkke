@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Child } from '../types';
-import { childrenApi } from '../services/database';
-import { useAuth } from './AuthContext';
+import { childrenApi } from '../services/localStorage';
 
 interface ChildContextType {
   children: Child[];
@@ -20,16 +19,8 @@ export function ChildProvider({ children: reactChildren }: { children: React.Rea
   const [children, setChildren] = useState<Child[]>([]);
   const [selectedChild, setSelectedChild] = useState<Child | null>(null);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
 
   const refreshChildren = async () => {
-    if (!user) {
-      setChildren([]);
-      setSelectedChild(null);
-      setLoading(false);
-      return;
-    }
-
     try {
       setLoading(true);
       const fetchedChildren = await childrenApi.getAll();
@@ -43,6 +34,9 @@ export function ChildProvider({ children: reactChildren }: { children: React.Rea
         const updated = fetchedChildren.find(c => c.id === selectedChild.id);
         if (updated) {
           setSelectedChild(updated);
+        } else {
+          // 선택된 자녀가 삭제된 경우
+          setSelectedChild(fetchedChildren.length > 0 ? fetchedChildren[0] : null);
         }
       }
     } catch (error) {
@@ -54,20 +48,14 @@ export function ChildProvider({ children: reactChildren }: { children: React.Rea
 
   useEffect(() => {
     refreshChildren();
-  }, [user]);
+  }, []);
 
   const selectChild = (child: Child | null) => {
     setSelectedChild(child);
   };
 
   const addChild = async (childData: Omit<Child, 'id' | 'created_at' | 'updated_at' | 'user_id'>) => {
-    if (!user) throw new Error('User not authenticated');
-
-    const newChild = await childrenApi.create({
-      ...childData,
-      user_id: user.id,
-    });
-
+    const newChild = await childrenApi.create(childData);
     await refreshChildren();
     setSelectedChild(newChild);
     return newChild;

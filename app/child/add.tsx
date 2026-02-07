@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useChild } from '../../contexts/ChildContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { formatDateString, isValidDate } from '../../utils/dateFormat';
 
 export default function AddChildScreen() {
@@ -22,7 +23,19 @@ export default function AddChildScreen() {
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const { addChild } = useChild();
+  const { theme } = useTheme();
   const router = useRouter();
+
+  const ds = {
+    container: { backgroundColor: theme.colors.background },
+    header: { borderBottomColor: theme.colors.border },
+    cancelButton: { color: theme.colors.accent },
+    headerTitle: { color: theme.colors.text },
+    label: { color: theme.colors.text },
+    input: { borderColor: theme.colors.border, backgroundColor: theme.colors.surface, color: theme.colors.text },
+    hint: { color: theme.colors.textMuted },
+    saveButton: { backgroundColor: theme.colors.primary },
+  };
 
   const handleSave = async () => {
     if (!name || !birthDate) {
@@ -60,59 +73,63 @@ export default function AddChildScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
+      style={[styles.container, ds.container]}
     >
-      <View style={styles.header}>
+      <View style={[styles.header, ds.header]}>
         <TouchableOpacity onPress={() => router.push('/(tabs)/profile')}>
-          <Text style={styles.cancelButton}>취소</Text>
+          <Text style={[styles.cancelButton, ds.cancelButton]}>취소</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>프로필 추가</Text>
+        <Text style={[styles.headerTitle, ds.headerTitle]}>프로필 추가</Text>
         <View style={{ width: 50 }} />
       </View>
 
       <ScrollView style={styles.content}>
         <View style={styles.formGroup}>
-          <Text style={styles.label}>이름 *</Text>
+          <Text style={[styles.label, ds.label]}>이름 *</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, ds.input]}
             value={name}
             onChangeText={setName}
             placeholder="아이의 이름"
+            placeholderTextColor={theme.colors.textMuted}
             editable={!loading}
           />
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={styles.label}>생년월일 *</Text>
+          <Text style={[styles.label, ds.label]}>생년월일 *</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, ds.input]}
             value={birthDate}
             onChangeText={setBirthDate}
             placeholder="20200115 또는 2020-01-15"
+            placeholderTextColor={theme.colors.textMuted}
             keyboardType="numeric"
             editable={!loading}
           />
-          <Text style={styles.hint}>숫자만 입력하세요 (예: 20200115)</Text>
+          <Text style={[styles.hint, ds.hint]}>숫자만 입력하세요 (예: 20200115)</Text>
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={styles.label}>진단명</Text>
+          <Text style={[styles.label, ds.label]}>진단명</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, ds.input]}
             value={diagnosis}
             onChangeText={setDiagnosis}
             placeholder="진단명 (선택사항)"
+            placeholderTextColor={theme.colors.textMuted}
             editable={!loading}
           />
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={styles.label}>메모</Text>
+          <Text style={[styles.label, ds.label]}>메모</Text>
           <TextInput
-            style={[styles.input, styles.textArea]}
+            style={[styles.input, styles.textArea, ds.input]}
             value={notes}
             onChangeText={setNotes}
             placeholder="추가 메모 (선택사항)"
+            placeholderTextColor={theme.colors.textMuted}
             multiline
             numberOfLines={4}
             editable={!loading}
@@ -120,7 +137,7 @@ export default function AddChildScreen() {
         </View>
 
         <TouchableOpacity
-          style={[styles.saveButton, loading && styles.saveButtonDisabled]}
+          style={[styles.saveButton, ds.saveButton, loading && styles.saveButtonDisabled]}
           onPress={handleSave}
           disabled={loading}
         >

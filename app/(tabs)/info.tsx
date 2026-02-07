@@ -5,10 +5,10 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  TextInput,
   RefreshControl,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const INFO_CATEGORIES = [
   {
@@ -54,8 +54,26 @@ const QUICK_LINKS = [
 
 export default function InfoScreen() {
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState('');
+  const { theme } = useTheme();
   const [refreshing, setRefreshing] = useState(false);
+
+  const ds = {
+    container: { backgroundColor: theme.colors.background },
+    infoBox: { backgroundColor: theme.colors.accentLight },
+    infoTitle: { color: theme.colors.accent },
+    infoText: { color: theme.colors.accent },
+    sectionTitle: { color: theme.colors.text },
+    categoryCard: { backgroundColor: theme.colors.card },
+    categoryTitle: { color: theme.colors.text },
+    categoryDescription: { color: theme.colors.textSecondary },
+    categoryArrow: { color: theme.colors.textMuted },
+    quickLinkCard: { backgroundColor: theme.colors.card },
+    quickLinkTitle: { color: theme.colors.text },
+    updateCard: { backgroundColor: theme.colors.card },
+    updateText: { color: theme.colors.text },
+    updateDate: { color: theme.colors.textMuted },
+    updateItemBorder: { borderBottomColor: theme.colors.border },
+  };
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -75,31 +93,17 @@ export default function InfoScreen() {
 
   return (
     <ScrollView
-      style={styles.container}
+      style={[styles.container, ds.container]}
       refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.colors.accent} />
       }
     >
-      {/* 검색 바 */}
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="학교, 복지관, 서비스 검색..."
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          placeholderTextColor="#999"
-        />
-        <TouchableOpacity style={styles.searchButton}>
-          <Text style={styles.searchButtonText}>검색</Text>
-        </TouchableOpacity>
-      </View>
-
       {/* 안내 메시지 */}
-      <View style={styles.infoBox}>
+      <View style={[styles.infoBox, ds.infoBox]}>
         <Text style={styles.infoIcon}>💡</Text>
         <View style={styles.infoContent}>
-          <Text style={styles.infoTitle}>정보를 찾고 계신가요?</Text>
-          <Text style={styles.infoText}>
+          <Text style={[styles.infoTitle, ds.infoTitle]}>정보를 찾고 계신가요?</Text>
+          <Text style={[styles.infoText, ds.infoText]}>
             아래 카테고리에서 필요한 정보를 찾아보세요.{'\n'}
             공공데이터 API를 통해 실시간 정보를 제공합니다.
           </Text>
@@ -108,20 +112,20 @@ export default function InfoScreen() {
 
       {/* 카테고리 그리드 */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>카테고리</Text>
+        <Text style={[styles.sectionTitle, ds.sectionTitle]}>카테고리</Text>
         <View style={styles.categoryGrid}>
           {INFO_CATEGORIES.map((category) => (
             <TouchableOpacity
               key={category.id}
-              style={[styles.categoryCard, { borderLeftColor: category.color }]}
+              style={[styles.categoryCard, ds.categoryCard, { borderLeftColor: category.color }]}
               onPress={() => handleCategoryPress(category.route)}
             >
               <Text style={styles.categoryIcon}>{category.icon}</Text>
               <View style={styles.categoryContent}>
-                <Text style={styles.categoryTitle}>{category.title}</Text>
-                <Text style={styles.categoryDescription}>{category.description}</Text>
+                <Text style={[styles.categoryTitle, ds.categoryTitle]}>{category.title}</Text>
+                <Text style={[styles.categoryDescription, ds.categoryDescription]}>{category.description}</Text>
               </View>
-              <Text style={styles.categoryArrow}>›</Text>
+              <Text style={[styles.categoryArrow, ds.categoryArrow]}>›</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -129,16 +133,16 @@ export default function InfoScreen() {
 
       {/* 빠른 링크 */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>유용한 사이트</Text>
+        <Text style={[styles.sectionTitle, ds.sectionTitle]}>유용한 사이트</Text>
         <View style={styles.quickLinksGrid}>
           {QUICK_LINKS.map((link, index) => (
             <TouchableOpacity
               key={index}
-              style={styles.quickLinkCard}
+              style={[styles.quickLinkCard, ds.quickLinkCard]}
               onPress={() => handleQuickLinkPress(link.url)}
             >
               <Text style={styles.quickLinkIcon}>{link.icon}</Text>
-              <Text style={styles.quickLinkTitle}>{link.title}</Text>
+              <Text style={[styles.quickLinkTitle, ds.quickLinkTitle]}>{link.title}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -146,19 +150,19 @@ export default function InfoScreen() {
 
       {/* 최근 업데이트 */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>최근 업데이트</Text>
-        <View style={styles.updateCard}>
-          <View style={styles.updateItem}>
+        <Text style={[styles.sectionTitle, ds.sectionTitle]}>최근 업데이트</Text>
+        <View style={[styles.updateCard, ds.updateCard]}>
+          <View style={[styles.updateItem, ds.updateItemBorder]}>
             <Text style={styles.updateBadge}>NEW</Text>
-            <Text style={styles.updateText}>2026년 장애인 복지서비스 안내</Text>
+            <Text style={[styles.updateText, ds.updateText]}>2026년 장애인 복지서비스 안내</Text>
           </View>
-          <View style={styles.updateItem}>
-            <Text style={styles.updateDate}>01.09</Text>
-            <Text style={styles.updateText}>특수교육대상자 선정 절차 가이드</Text>
+          <View style={[styles.updateItem, ds.updateItemBorder]}>
+            <Text style={[styles.updateDate, ds.updateDate]}>01.09</Text>
+            <Text style={[styles.updateText, ds.updateText]}>특수교육대상자 선정 절차 가이드</Text>
           </View>
-          <View style={styles.updateItem}>
-            <Text style={styles.updateDate}>01.05</Text>
-            <Text style={styles.updateText}>발달재활서비스 바우처 신청 방법</Text>
+          <View style={[styles.updateItem, ds.updateItemBorder]}>
+            <Text style={[styles.updateDate, ds.updateDate]}>01.05</Text>
+            <Text style={[styles.updateText, ds.updateText]}>발달재활서비스 바우처 신청 방법</Text>
           </View>
         </View>
       </View>
@@ -174,36 +178,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f5f5f5',
   },
-  searchContainer: {
-    flexDirection: 'row',
-    padding: 16,
-    backgroundColor: '#fff',
-    gap: 10,
-  },
-  searchInput: {
-    flex: 1,
-    height: 44,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    fontSize: 16,
-  },
-  searchButton: {
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    justifyContent: 'center',
-  },
-  searchButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
   infoBox: {
     flexDirection: 'row',
     backgroundColor: '#E3F2FD',
     margin: 16,
-    marginTop: 8,
     padding: 16,
     borderRadius: 12,
     alignItems: 'flex-start',

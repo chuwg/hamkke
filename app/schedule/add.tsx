@@ -15,10 +15,11 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useChild } from '../../contexts/ChildContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import { schedulesApi } from '../../services/database';
+import { schedulesApi } from '../../services/localStorage';
 import { formatTimeString, isValidTime, toLocalISOString } from '../../utils/dateFormat';
 import { RecurrenceRule } from '../../types';
 import { calendarService } from '../../services/calendar';
+import { notificationService } from '../../services/notifications';
 
 // 오늘 날짜를 YYYY-MM-DD 형식으로 반환
 const getTodayDateString = () => {
@@ -248,6 +249,24 @@ export default function AddScheduleScreen() {
         calendar_event_id: calendarEventId,
       });
       console.log('=== 저장 성공 ===', result);
+
+      // 푸시 알림 스케줄링
+      if (reminderMinutes && result?.id) {
+        const notificationTime = notificationService.calculateNotificationTime(
+          new Date(startDateTime),
+          parseInt(reminderMinutes)
+        );
+
+        await notificationService.scheduleNotification({
+          scheduleId: result.id,
+          title: `${selectedChild.name} - ${title}`,
+          body: `${parseInt(reminderMinutes)}분 후 일정이 있습니다`,
+          scheduledTime: notificationTime,
+          data: { type: 'schedule', scheduleId: result.id },
+        });
+        console.log('=== 푸시 알림 스케줄링 완료 ===');
+      }
+
       console.log('=== 네비게이션 시작 ===');
       router.replace('/(tabs)/schedule');
       console.log('=== 네비게이션 완료 ===');

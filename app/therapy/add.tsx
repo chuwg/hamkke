@@ -14,7 +14,7 @@ import {
 import { useRouter } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useChild } from '../../contexts/ChildContext';
-import { therapyRecordsApi } from '../../services/database';
+import { therapyRecordsApi } from '../../services/localStorage';
 
 const THERAPY_TYPES = [
   '언어치료',

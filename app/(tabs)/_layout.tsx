@@ -1,5 +1,6 @@
 import { Tabs } from 'expo-router';
 import { Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 
 export default function TabsLayout() {
@@ -33,6 +34,9 @@ export default function TabsLayout() {
         options={{
           title: '홈',
           headerTitle: '함께크는',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="home" size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
@@ -40,6 +44,9 @@ export default function TabsLayout() {
         options={{
           title: '일정',
           headerTitle: '일정 관리',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="calendar" size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
@@ -47,6 +54,9 @@ export default function TabsLayout() {
         options={{
           title: '기록',
           headerTitle: '치료 기록',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="clipboard" size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
@@ -54,6 +64,9 @@ export default function TabsLayout() {
         options={{
           title: '정보',
           headerTitle: '정보 찾기',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="information-circle" size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
@@ -61,6 +74,9 @@ export default function TabsLayout() {
         options={{
           title: '프로필',
           headerTitle: '아이 프로필',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="person" size={size} color={color} />
+          ),
         }}
       />
     </Tabs>

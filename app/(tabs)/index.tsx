@@ -11,7 +11,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useChild } from '../../contexts/ChildContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import { schedulesApi } from '../../services/database';
+import { schedulesApi } from '../../services/localStorage';
 import { Schedule, RecurrenceRule } from '../../types';
 
 // 반복 일정을 확장하는 헬퍼 함수

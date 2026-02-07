@@ -1,0 +1,17 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Two figures (parent and child growing together) -->
+  <!-- Parent figure -->
+  <circle cx="200" cy="160" r="50" fill="white"/>
+  <path d="M200 220 Q200 310 200 360 Q200 420 170 445" stroke="white" stroke-width="30" stroke-linecap="round" fill="none"/>
+  <path d="M200 260 Q145 295 120 345" stroke="white" stroke-width="25" stroke-linecap="round" fill="none"/>
+  <path d="M200 260 Q255 280 280 320" stroke="white" stroke-width="25" stroke-linecap="round" fill="none"/>
+
+  <!-- Child figure (smaller) -->
+  <circle cx="320" cy="190" r="40" fill="#FFE66D"/>
+  <path d="M320 240 Q320 310 320 350 Q320 400 350 420" stroke="#FFE66D" stroke-width="24" stroke-linecap="round" fill="none"/>
+  <path d="M320 275 Q280 300 265 335" stroke="#FFE66D" stroke-width="20" stroke-linecap="round" fill="none"/>
+  <path d="M320 275 Q360 295 385 325" stroke="#FFE66D" stroke-width="20" stroke-linecap="round" fill="none"/>
+
+  <!-- Heart connection -->
+  <path d="M245 230 Q256 200 267 230 Q278 250 256 285 Q234 250 245 230" fill="#FF6B6B"/>
+</svg>

@@ -14,7 +14,7 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useChild } from '../../../contexts/ChildContext';
-import { sensoryProfilesApi } from '../../../services/database';
+import { sensoryProfilesApi } from '../../../services/localStorage';
 
 const SENSORY_TYPES = [
   { key: 'visual', name: '시각', icon: '👁️', description: '빛, 색상, 시각적 패턴에 대한 반응' },

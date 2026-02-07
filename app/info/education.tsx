@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import FooterNav from '../../components/FooterNav';
+import { useTheme } from '../../contexts/ThemeContext';
 
 // 학교급별 진학 정보
 const EDUCATION_STAGES = [
@@ -173,38 +174,66 @@ const SELECTION_PROCESS = [
 
 export default function EducationGuideScreen() {
   const router = useRouter();
+  const { theme } = useTheme();
   const [selectedStage, setSelectedStage] = useState<string | null>(null);
+
+  const ds = {
+    container: { backgroundColor: theme.colors.background },
+    header: { backgroundColor: theme.colors.card, borderBottomColor: theme.colors.border },
+    title: { color: theme.colors.text },
+    subtitle: { color: theme.colors.textSecondary },
+    processSection: { backgroundColor: theme.colors.card },
+    processTitle: { color: theme.colors.text },
+    processStepTitle: { color: theme.colors.text },
+    processStepDesc: { color: theme.colors.textSecondary },
+    processLine: { backgroundColor: theme.colors.accentLight },
+    sectionTitle: { color: theme.colors.text },
+    stageCard: { backgroundColor: theme.colors.card },
+    stageTitle: { color: theme.colors.text },
+    stageAge: { color: theme.colors.textSecondary },
+    expandIcon: { color: theme.colors.textMuted },
+    stageDetails: { backgroundColor: theme.colors.surface, borderTopColor: theme.colors.border },
+    optionsTitle: { color: theme.colors.text },
+    optionCard: { backgroundColor: theme.colors.card },
+    optionTitle: { color: theme.colors.text },
+    optionDesc: { color: theme.colors.textSecondary },
+    tipsContainer: { borderTopColor: theme.colors.border },
+    tipsTitle: { color: theme.colors.accent },
+    tipItem: { color: theme.colors.textSecondary },
+    linkButton: { backgroundColor: theme.colors.card },
+    linkText: { color: theme.colors.text },
+  };
 
   const handleStagePress = (stageId: string) => {
     setSelectedStage(selectedStage === stageId ? null : stageId);
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, ds.container]}>
       <ScrollView style={styles.content}>
         {/* 헤더 */}
-        <View style={styles.header}>
-          <Text style={styles.title}>교육/진학 가이드</Text>
-          <Text style={styles.subtitle}>
+        <View style={[styles.header, ds.header]}>
+          <Text style={[styles.title, ds.title]}>교육/진학 가이드</Text>
+          <Text style={[styles.subtitle, ds.subtitle]}>
             학교급별 진학 정보와 절차를 안내합니다
           </Text>
         </View>
 
         {/* 특수교육대상자 선정 절차 */}
-        <View style={styles.processSection}>
-          <Text style={styles.processTitle}>특수교육대상자 선정 절차</Text>
+        <View style={[styles.processSection, ds.processSection]}>
+          <Text style={[styles.processTitle, ds.processTitle]}>특수교육대상자 선정 절차</Text>
           <View style={styles.processContainer}>
             {SELECTION_PROCESS.map((item, index) => (
               <View key={item.step} style={styles.processItem}>
-                <View style={styles.processStep}>
+                <View style={[styles.processStep, { backgroundColor: theme.colors.accent }]}>
                   <Text style={styles.processStepNumber}>{item.step}</Text>
                 </View>
                 <View style={styles.processContent}>
-                  <Text style={styles.processStepTitle}>{item.title}</Text>
-                  <Text style={styles.processStepDesc}>{item.desc}</Text>
+                  <Text style={[styles.processStepTitle, ds.processStepTitle]}>{item.title}</Text>
+                  <Text style={[styles.processStepDesc, ds.processStepDesc]}>{item.desc}</Text>
                 </View>
                 {index < SELECTION_PROCESS.length - 1 && (
-                  <View style={styles.processLine} />
+                  <View style={[styles.processLine, ds.processLine]} />
                 )}
               </View>
             ))}
@@ -213,33 +242,33 @@ export default function EducationGuideScreen() {
 
         {/* 학교급별 안내 */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>학교급별 진학 안내</Text>
+          <Text style={[styles.sectionTitle, ds.sectionTitle]}>학교급별 진학 안내</Text>
           {EDUCATION_STAGES.map((stage) => (
             <TouchableOpacity
               key={stage.id}
-              style={styles.stageCard}
+              style={[styles.stageCard, ds.stageCard]}
               onPress={() => handleStagePress(stage.id)}
               activeOpacity={0.7}
             >
               <View style={styles.stageHeader}>
                 <Text style={styles.stageIcon}>{stage.icon}</Text>
                 <View style={styles.stageInfo}>
-                  <Text style={styles.stageTitle}>{stage.stage}</Text>
-                  <Text style={styles.stageAge}>{stage.ageRange}</Text>
+                  <Text style={[styles.stageTitle, ds.stageTitle]}>{stage.stage}</Text>
+                  <Text style={[styles.stageAge, ds.stageAge]}>{stage.ageRange}</Text>
                 </View>
-                <Text style={styles.expandIcon}>
+                <Text style={[styles.expandIcon, ds.expandIcon]}>
                   {selectedStage === stage.id ? '▲' : '▼'}
                 </Text>
               </View>
 
               {selectedStage === stage.id && (
-                <View style={styles.stageDetails}>
+                <View style={[styles.stageDetails, ds.stageDetails]}>
                   {/* 선택지 */}
-                  <Text style={styles.optionsTitle}>교육 형태</Text>
+                  <Text style={[styles.optionsTitle, ds.optionsTitle]}>교육 형태</Text>
                   {stage.options.map((option, idx) => (
-                    <View key={idx} style={styles.optionCard}>
-                      <Text style={styles.optionTitle}>{option.title}</Text>
-                      <Text style={styles.optionDesc}>{option.description}</Text>
+                    <View key={idx} style={[styles.optionCard, ds.optionCard]}>
+                      <Text style={[styles.optionTitle, ds.optionTitle]}>{option.title}</Text>
+                      <Text style={[styles.optionDesc, ds.optionDesc]}>{option.description}</Text>
                       <View style={styles.prosConsContainer}>
                         <View style={styles.prosSection}>
                           <Text style={styles.prosLabel}>장점</Text>
@@ -258,10 +287,10 @@ export default function EducationGuideScreen() {
                   ))}
 
                   {/* 팁 */}
-                  <View style={styles.tipsContainer}>
-                    <Text style={styles.tipsTitle}>알아두세요</Text>
+                  <View style={[styles.tipsContainer, ds.tipsContainer]}>
+                    <Text style={[styles.tipsTitle, ds.tipsTitle]}>알아두세요</Text>
                     {stage.tips.map((tip, idx) => (
-                      <Text key={idx} style={styles.tipItem}>• {tip}</Text>
+                      <Text key={idx} style={[styles.tipItem, ds.tipItem]}>• {tip}</Text>
                     ))}
                   </View>
                 </View>
@@ -272,10 +301,10 @@ export default function EducationGuideScreen() {
 
         {/* 유용한 링크 */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>관련 사이트</Text>
+          <Text style={[styles.sectionTitle, ds.sectionTitle]}>관련 사이트</Text>
           <View style={styles.linksContainer}>
             <TouchableOpacity
-              style={styles.linkButton}
+              style={[styles.linkButton, ds.linkButton]}
               onPress={() => {
                 if (typeof window !== 'undefined') {
                   window.open('https://www.nise.go.kr', '_blank');
@@ -283,10 +312,10 @@ export default function EducationGuideScreen() {
               }}
             >
               <Text style={styles.linkIcon}>📖</Text>
-              <Text style={styles.linkText}>국립특수교육원</Text>
+              <Text style={[styles.linkText, ds.linkText]}>국립특수교육원</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.linkButton}
+              style={[styles.linkButton, ds.linkButton]}
               onPress={() => {
                 if (typeof window !== 'undefined') {
                   window.open('https://www.schoolinfo.go.kr', '_blank');
@@ -294,7 +323,7 @@ export default function EducationGuideScreen() {
               }}
             >
               <Text style={styles.linkIcon}>🏫</Text>
-              <Text style={styles.linkText}>학교알리미</Text>
+              <Text style={[styles.linkText, ds.linkText]}>학교알리미</Text>
             </TouchableOpacity>
           </View>
         </View>

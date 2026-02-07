@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import FooterNav from '../../components/FooterNav';
+import { useTheme } from '../../contexts/ThemeContext';
 import {
   fetchSpecialClassSchools,
   SIDO_CODES,
@@ -20,6 +21,7 @@ import {
 } from '../../services/schoolInfoApi';
 
 export default function SchoolScreen() {
+  const { theme } = useTheme();
   const [selectedSido, setSelectedSido] = useState('');
   const [selectedSgg, setSelectedSgg] = useState('');
   const [selectedLevel, setSelectedLevel] = useState('');
@@ -29,6 +31,38 @@ export default function SchoolScreen() {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  const ds = {
+    wrapper: { backgroundColor: theme.colors.background },
+    container: { backgroundColor: theme.colors.background },
+    title: { color: theme.colors.text },
+    subtitle: { color: theme.colors.textSecondary },
+    infoBox: { backgroundColor: theme.colors.accentLight },
+    infoTitle: { color: theme.colors.accent },
+    infoText: { color: theme.colors.accent },
+    filterSection: { backgroundColor: theme.colors.card },
+    filterTitle: { color: theme.colors.text },
+    pickerLabel: { color: theme.colors.textSecondary },
+    pickerWrapper: { borderColor: theme.colors.border, backgroundColor: theme.colors.surface },
+    loadingText: { color: theme.colors.textSecondary },
+    resultsTitle: { color: theme.colors.text },
+    pageInfo: { color: theme.colors.textSecondary },
+    emptyResult: { backgroundColor: theme.colors.card },
+    emptyResultText: { color: theme.colors.textMuted },
+    schoolCard: { backgroundColor: theme.colors.card },
+    schoolName: { color: theme.colors.text },
+    schoolMetaItem: { color: theme.colors.textSecondary },
+    schoolMetaDot: { color: theme.colors.textMuted },
+    schoolAddress: { color: theme.colors.textSecondary },
+    emptyState: { backgroundColor: theme.colors.card },
+    emptyStateTitle: { color: theme.colors.text },
+    emptyStateText: { color: theme.colors.textSecondary },
+    guideSection: { backgroundColor: theme.colors.card },
+    guideTitle: { color: theme.colors.text },
+    guideItemTitle: { color: theme.colors.text },
+    guideItemText: { color: theme.colors.textSecondary },
+    pageNumber: { color: theme.colors.text },
+  };
 
   const sggCodes = getSggCodes(selectedSido);
 
@@ -124,42 +158,42 @@ export default function SchoolScreen() {
   const totalPages = Math.ceil(schools.length / itemsPerPage);
 
   return (
-    <View style={styles.wrapper}>
-    <ScrollView style={styles.container}>
+    <View style={[styles.wrapper, ds.wrapper]}>
+    <ScrollView style={[styles.container, ds.container]}>
       <View style={styles.content}>
         {/* 헤더 */}
         <View style={styles.header}>
-          <Text style={styles.title}>특수학급 설치 학교</Text>
-          <Text style={styles.subtitle}>
+          <Text style={[styles.title, ds.title]}>특수학급 설치 학교</Text>
+          <Text style={[styles.subtitle, ds.subtitle]}>
             우리 지역의 특수학급이 있는 학교를 찾아보세요
           </Text>
         </View>
 
         {/* 안내 박스 */}
-        <View style={styles.infoBox}>
-          <Text style={styles.infoTitle}>특수학급이란?</Text>
-          <Text style={styles.infoText}>
+        <View style={[styles.infoBox, ds.infoBox]}>
+          <Text style={[styles.infoTitle, ds.infoTitle]}>특수학급이란?</Text>
+          <Text style={[styles.infoText, ds.infoText]}>
             일반학교에서 특수교육대상자에게 통합교육을 실시하기 위해 설치된 학급입니다.
             특수학급에서는 개별화교육계획에 따라 맞춤형 교육을 받을 수 있습니다.
           </Text>
         </View>
 
         {/* 검색 필터 */}
-        <View style={styles.filterSection}>
-          <Text style={styles.filterTitle}>지역 선택</Text>
+        <View style={[styles.filterSection, ds.filterSection]}>
+          <Text style={[styles.filterTitle, ds.filterTitle]}>지역 선택</Text>
 
           {/* 시/도 선택 */}
           <View style={styles.pickerContainer}>
-            <Text style={styles.pickerLabel}>시/도 *</Text>
-            <View style={styles.pickerWrapper}>
+            <Text style={[styles.pickerLabel, ds.pickerLabel]}>시/도 *</Text>
+            <View style={[styles.pickerWrapper, ds.pickerWrapper]}>
               <Picker
                 selectedValue={selectedSido}
                 onValueChange={handleSidoChange}
-                style={styles.picker}
+                style={[styles.picker, { color: theme.colors.text }]}
               >
-                <Picker.Item label="시/도 선택" value="" />
+                <Picker.Item label="시/도 선택" value="" color={theme.colors.text} />
                 {SIDO_CODES.filter((s) => s.code !== '').map((sido) => (
-                  <Picker.Item key={sido.code} label={sido.name} value={sido.code} />
+                  <Picker.Item key={sido.code} label={sido.name} value={sido.code} color={theme.colors.text} />
                 ))}
               </Picker>
             </View>
@@ -167,20 +201,21 @@ export default function SchoolScreen() {
 
           {/* 시/군/구 선택 */}
           <View style={styles.pickerContainer}>
-            <Text style={styles.pickerLabel}>시/군/구 *</Text>
-            <View style={styles.pickerWrapper}>
+            <Text style={[styles.pickerLabel, ds.pickerLabel]}>시/군/구 *</Text>
+            <View style={[styles.pickerWrapper, ds.pickerWrapper]}>
               <Picker
                 selectedValue={selectedSgg}
                 onValueChange={setSelectedSgg}
-                style={styles.picker}
+                style={[styles.picker, { color: theme.colors.text }]}
                 enabled={sggCodes.length > 0}
               >
                 <Picker.Item
                   label={sggCodes.length > 0 ? '시/군/구 선택' : '시/도를 먼저 선택하세요'}
                   value=""
+                  color={theme.colors.text}
                 />
                 {sggCodes.map((sgg) => (
-                  <Picker.Item key={sgg.code} label={sgg.name} value={sgg.code} />
+                  <Picker.Item key={sgg.code} label={sgg.name} value={sgg.code} color={theme.colors.text} />
                 ))}
               </Picker>
             </View>
@@ -188,22 +223,22 @@ export default function SchoolScreen() {
 
           {/* 학교급 선택 */}
           <View style={styles.pickerContainer}>
-            <Text style={styles.pickerLabel}>학교급</Text>
-            <View style={styles.pickerWrapper}>
+            <Text style={[styles.pickerLabel, ds.pickerLabel]}>학교급</Text>
+            <View style={[styles.pickerWrapper, ds.pickerWrapper]}>
               <Picker
                 selectedValue={selectedLevel}
                 onValueChange={setSelectedLevel}
-                style={styles.picker}
+                style={[styles.picker, { color: theme.colors.text }]}
               >
                 {SCHOOL_LEVEL_CODES.map((level) => (
-                  <Picker.Item key={level.code} label={level.name} value={level.code} />
+                  <Picker.Item key={level.code} label={level.name} value={level.code} color={theme.colors.text} />
                 ))}
               </Picker>
             </View>
           </View>
 
           {/* 검색 버튼 */}
-          <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
+          <TouchableOpacity style={[styles.searchButton, { backgroundColor: theme.colors.accent }]} onPress={handleSearch}>
             <Text style={styles.searchButtonText}>특수학급 학교 검색</Text>
           </TouchableOpacity>
         </View>
@@ -211,8 +246,8 @@ export default function SchoolScreen() {
         {/* 결과 영역 */}
         {loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#007AFF" />
-            <Text style={styles.loadingText}>검색 중...</Text>
+            <ActivityIndicator size="large" color={theme.colors.accent} />
+            <Text style={[styles.loadingText, ds.loadingText]}>검색 중...</Text>
           </View>
         ) : error ? (
           <View style={styles.errorBox}>
@@ -220,27 +255,27 @@ export default function SchoolScreen() {
           </View>
         ) : hasSearched ? (
           <View style={styles.resultsSection}>
-            <Text style={styles.resultsTitle}>
+            <Text style={[styles.resultsTitle, ds.resultsTitle]}>
               검색 결과 (전체 {schools.length}개교)
             </Text>
             {schools.length > 0 && (
-              <Text style={styles.pageInfo}>
+              <Text style={[styles.pageInfo, ds.pageInfo]}>
                 {currentPage} / {totalPages} 페이지
               </Text>
             )}
 
             {schools.length === 0 ? (
-              <View style={styles.emptyResult}>
-                <Text style={styles.emptyResultText}>
+              <View style={[styles.emptyResult, ds.emptyResult]}>
+                <Text style={[styles.emptyResultText, ds.emptyResultText]}>
                   해당 지역에 특수학급 설치 학교가 없습니다
                 </Text>
               </View>
             ) : (
               <>
                 {paginatedSchools.map((school) => (
-                  <View key={school.id} style={styles.schoolCard}>
+                  <View key={school.id} style={[styles.schoolCard, ds.schoolCard]}>
                     <View style={styles.schoolHeader}>
-                      <Text style={styles.schoolName}>{school.name}</Text>
+                      <Text style={[styles.schoolName, ds.schoolName]}>{school.name}</Text>
                       <View
                         style={[
                           styles.levelBadge,
@@ -267,20 +302,20 @@ export default function SchoolScreen() {
                     </View>
 
                     <View style={styles.schoolMeta}>
-                      <Text style={styles.schoolMetaItem}>{school.foundationType}</Text>
-                      <Text style={styles.schoolMetaDot}>•</Text>
-                      <Text style={styles.schoolMetaItem}>{school.region}</Text>
+                      <Text style={[styles.schoolMetaItem, ds.schoolMetaItem]}>{school.foundationType}</Text>
+                      <Text style={[styles.schoolMetaDot, ds.schoolMetaDot]}>•</Text>
+                      <Text style={[styles.schoolMetaItem, ds.schoolMetaItem]}>{school.region}</Text>
                     </View>
 
                     {school.address && (
-                      <Text style={styles.schoolAddress}>{school.address}</Text>
+                      <Text style={[styles.schoolAddress, ds.schoolAddress]}>{school.address}</Text>
                     )}
 
                     {/* 액션 버튼 */}
                     <View style={styles.schoolActions}>
                       {school.phone && (
                         <TouchableOpacity
-                          style={styles.actionBtn}
+                          style={[styles.actionBtn, { backgroundColor: theme.colors.accent }]}
                           onPress={() => handleCall(school.phone)}
                         >
                           <Text style={styles.actionBtnText}>전화</Text>
@@ -288,11 +323,11 @@ export default function SchoolScreen() {
                       )}
                       {school.website && (
                         <TouchableOpacity
-                          style={[styles.actionBtn, styles.actionBtnOutline]}
+                          style={[styles.actionBtn, styles.actionBtnOutline, { borderColor: theme.colors.accent }]}
                           onPress={() => handleWebsite(school.website)}
                         >
                           <Text
-                            style={[styles.actionBtnText, styles.actionBtnTextOutline]}
+                            style={[styles.actionBtnText, styles.actionBtnTextOutline, { color: theme.colors.accent }]}
                           >
                             홈페이지
                           </Text>
@@ -308,6 +343,7 @@ export default function SchoolScreen() {
                     <TouchableOpacity
                       style={[
                         styles.pageBtn,
+                        { backgroundColor: theme.colors.accent },
                         currentPage === 1 && styles.pageBtnDisabled,
                       ]}
                       onPress={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
@@ -322,10 +358,11 @@ export default function SchoolScreen() {
                         이전
                       </Text>
                     </TouchableOpacity>
-                    <Text style={styles.pageNumber}>{currentPage}</Text>
+                    <Text style={[styles.pageNumber, ds.pageNumber]}>{currentPage}</Text>
                     <TouchableOpacity
                       style={[
                         styles.pageBtn,
+                        { backgroundColor: theme.colors.accent },
                         currentPage >= totalPages && styles.pageBtnDisabled,
                       ]}
                       onPress={() =>
@@ -348,10 +385,10 @@ export default function SchoolScreen() {
             )}
           </View>
         ) : (
-          <View style={styles.emptyState}>
+          <View style={[styles.emptyState, ds.emptyState]}>
             <Text style={styles.emptyStateIcon}>🏫</Text>
-            <Text style={styles.emptyStateTitle}>특수학급 학교 검색</Text>
-            <Text style={styles.emptyStateText}>
+            <Text style={[styles.emptyStateTitle, ds.emptyStateTitle]}>특수학급 학교 검색</Text>
+            <Text style={[styles.emptyStateText, ds.emptyStateText]}>
               지역을 선택하고 검색 버튼을 눌러{'\n'}
               특수학급이 설치된 학교를 찾아보세요
             </Text>
@@ -359,31 +396,31 @@ export default function SchoolScreen() {
         )}
 
         {/* 추가 안내 */}
-        <View style={styles.guideSection}>
-          <Text style={styles.guideTitle}>특수학급 입학 안내</Text>
+        <View style={[styles.guideSection, ds.guideSection]}>
+          <Text style={[styles.guideTitle, ds.guideTitle]}>특수학급 입학 안내</Text>
           <View style={styles.guideItem}>
-            <Text style={styles.guideNumber}>1</Text>
+            <Text style={[styles.guideNumber, { backgroundColor: theme.colors.accent }]}>1</Text>
             <View style={styles.guideContent}>
-              <Text style={styles.guideItemTitle}>특수교육대상자 선정</Text>
-              <Text style={styles.guideItemText}>
+              <Text style={[styles.guideItemTitle, ds.guideItemTitle]}>특수교육대상자 선정</Text>
+              <Text style={[styles.guideItemText, ds.guideItemText]}>
                 특수교육지원센터에서 진단/평가 후 선정
               </Text>
             </View>
           </View>
           <View style={styles.guideItem}>
-            <Text style={styles.guideNumber}>2</Text>
+            <Text style={[styles.guideNumber, { backgroundColor: theme.colors.accent }]}>2</Text>
             <View style={styles.guideContent}>
-              <Text style={styles.guideItemTitle}>배치 희망 학교 신청</Text>
-              <Text style={styles.guideItemText}>
+              <Text style={[styles.guideItemTitle, ds.guideItemTitle]}>배치 희망 학교 신청</Text>
+              <Text style={[styles.guideItemText, ds.guideItemText]}>
                 거주지 인근 특수학급 설치 학교로 신청
               </Text>
             </View>
           </View>
           <View style={styles.guideItem}>
-            <Text style={styles.guideNumber}>3</Text>
+            <Text style={[styles.guideNumber, { backgroundColor: theme.colors.accent }]}>3</Text>
             <View style={styles.guideContent}>
-              <Text style={styles.guideItemTitle}>특수교육운영위원회 심사</Text>
-              <Text style={styles.guideItemText}>
+              <Text style={[styles.guideItemTitle, ds.guideItemTitle]}>특수교육운영위원회 심사</Text>
+              <Text style={[styles.guideItemText, ds.guideItemText]}>
                 교육지원청에서 배치 결정
               </Text>
             </View>

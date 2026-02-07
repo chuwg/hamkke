@@ -1,23 +1,30 @@
 import { useEffect, useState } from 'react';
+import { Platform } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { ChildProvider } from '../contexts/ChildContext';
 import { ThemeProvider } from '../contexts/ThemeContext';
+import { notificationService } from '../services/notifications';
 
 const ONBOARDING_COMPLETE_KEY = '@hamkke_onboarding_complete';
 
 function RootLayoutNav() {
-  const { user, loading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
-  const [onboardingChecked, setOnboardingChecked] = useState(false);
-  const [onboardingComplete, setOnboardingComplete] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+  const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(null);
 
   // Check onboarding status on mount
   useEffect(() => {
     checkOnboardingStatus();
+  }, []);
+
+  // Request notification permission
+  useEffect(() => {
+    if (Platform.OS !== 'web') {
+      notificationService.requestPermission();
+    }
   }, []);
 
   const checkOnboardingStatus = async () => {
@@ -26,16 +33,18 @@ function RootLayoutNav() {
       setOnboardingComplete(value === 'true');
     } catch (error) {
       console.error('Failed to check onboarding status:', error);
+      setOnboardingComplete(false);
     } finally {
-      setOnboardingChecked(true);
+      setIsReady(true);
     }
   };
 
   useEffect(() => {
-    if (loading || !onboardingChecked) return;
+    if (!isReady || onboardingComplete === null) return;
 
-    const inAuthGroup = segments[0] === '(auth)';
     const inOnboarding = segments[0] === 'onboarding';
+    const inTabs = segments[0] === '(tabs)';
+    const inNestedRoutes = ['child', 'schedule', 'therapy', 'sensory', 'milestone', 'info'].includes(segments[0] as string);
 
     // Show onboarding for first-time users
     if (!onboardingComplete && !inOnboarding) {
@@ -43,21 +52,35 @@ function RootLayoutNav() {
       return;
     }
 
-    // After onboarding, handle auth navigation
-    if (onboardingComplete || inOnboarding) {
-      if (!user && !inAuthGroup && !inOnboarding) {
-        router.replace('/(auth)/login');
-      } else if (user && inAuthGroup) {
-        router.replace('/(tabs)');
-      }
+    // After onboarding completion, go to tabs
+    if (onboardingComplete && inOnboarding) {
+      router.replace('/(tabs)');
+      return;
     }
-  }, [user, segments, loading, onboardingChecked, onboardingComplete]);
+
+    // Redirect root to tabs if onboarding is complete
+    if (onboardingComplete && !inTabs && !inNestedRoutes && segments.length === 0) {
+      router.replace('/(tabs)');
+    }
+  }, [isReady, onboardingComplete, segments]);
+
+  // Re-check onboarding status when coming back from onboarding
+  useEffect(() => {
+    if (segments[0] === '(tabs)' && !onboardingComplete) {
+      checkOnboardingStatus();
+    }
+  }, [segments]);
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="onboarding" />
-      <Stack.Screen name="(auth)" />
       <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="child" />
+      <Stack.Screen name="schedule" />
+      <Stack.Screen name="therapy" />
+      <Stack.Screen name="sensory" />
+      <Stack.Screen name="milestone" />
+      <Stack.Screen name="info" />
     </Stack>
   );
 }
@@ -66,11 +89,9 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
-        <AuthProvider>
-          <ChildProvider>
-            <RootLayoutNav />
-          </ChildProvider>
-        </AuthProvider>
+        <ChildProvider>
+          <RootLayoutNav />
+        </ChildProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );
