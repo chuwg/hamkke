@@ -54,7 +54,7 @@ export async function fetchWelfareCenters(params: {
 }): Promise<ApiResponse<WelfareCenter>> {
   const { page = 1, perPage = 20, sido, sigungu } = params;
 
-  let url = `${BASE_URL}${WELFARE_CENTER_ENDPOINT}?page=${page}&perPage=${perPage}&serviceKey=${API_KEY}`;
+  let url = `${BASE_URL}${WELFARE_CENTER_ENDPOINT}?page=${page}&perPage=${perPage}`;
 
   // 시도 필터 (cond 파라미터 사용)
   if (sido) {
@@ -65,7 +65,11 @@ export async function fetchWelfareCenters(params: {
   }
 
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Infuser ${API_KEY}`,
+      },
+    });
     if (!response.ok) {
       throw new Error(`API 요청 실패: ${response.status}`);
     }
@@ -85,7 +89,7 @@ export async function fetchRehabCenters(params: {
 }): Promise<ApiResponse<RehabCenter>> {
   const { page = 1, perPage = 20, sido, sigungu } = params;
 
-  let url = `${BASE_URL}${REHAB_CENTER_ENDPOINT}?page=${page}&perPage=${perPage}&serviceKey=${API_KEY}`;
+  let url = `${BASE_URL}${REHAB_CENTER_ENDPOINT}?page=${page}&perPage=${perPage}`;
 
   if (sido) {
     url += `&cond[시도::EQ]=${encodeURIComponent(sido)}`;
@@ -95,7 +99,11 @@ export async function fetchRehabCenters(params: {
   }
 
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Infuser ${API_KEY}`,
+      },
+    });
     if (!response.ok) {
       throw new Error(`API 요청 실패: ${response.status}`);
     }
