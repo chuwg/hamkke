@@ -11,6 +11,7 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useChild } from '../../contexts/ChildContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -71,11 +72,12 @@ export default function AddChildScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={[styles.container, ds.container]}
-    >
-      <View style={[styles.header, ds.header]}>
+    <SafeAreaView style={[styles.container, ds.container]} edges={['top']}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.flexOne}
+      >
+        <View style={[styles.header, ds.header]}>
         <TouchableOpacity onPress={() => router.push('/(tabs)/profile')}>
           <Text style={[styles.cancelButton, ds.cancelButton]}>취소</Text>
         </TouchableOpacity>
@@ -148,7 +150,8 @@ export default function AddChildScreen() {
           )}
         </TouchableOpacity>
       </ScrollView>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -156,6 +159,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  flexOne: {
+    flex: 1,
   },
   header: {
     flexDirection: 'row',

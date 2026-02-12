@@ -10,6 +10,7 @@ import {
   Linking,
   Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import FooterNav from '../../components/FooterNav';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -179,7 +180,7 @@ export default function WelfareSearchScreen() {
   };
 
   return (
-    <View style={[styles.container, ds.container]}>
+    <SafeAreaView style={[styles.container, ds.container]} edges={['top']}>
       <ScrollView style={styles.content}>
         {/* 헤더 */}
         <View style={[styles.header, ds.header]}>
@@ -387,7 +388,7 @@ export default function WelfareSearchScreen() {
       </ScrollView>
 
       <FooterNav />
-    </View>
+    </SafeAreaView>
   );
 }
 

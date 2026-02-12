@@ -11,9 +11,11 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useChild } from '../../contexts/ChildContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { sensoryProfilesApi } from '../../services/localStorage';
 
 const SENSORY_TYPES = [
@@ -48,7 +50,29 @@ export default function AddSensoryProfileScreen() {
   const [loading, setLoading] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const { selectedChild } = useChild();
+  const { theme } = useTheme();
   const router = useRouter();
+
+  const ds = {
+    container: { backgroundColor: theme.colors.background },
+    header: { borderBottomColor: theme.colors.border },
+    cancelButton: { color: theme.colors.accent },
+    headerTitle: { color: theme.colors.text },
+    label: { color: theme.colors.text },
+    input: { borderColor: theme.colors.border, backgroundColor: theme.colors.surface, color: theme.colors.text },
+    hint: { color: theme.colors.textMuted },
+    inputText: { color: theme.colors.text },
+    placeholderText: { color: theme.colors.textMuted },
+    sectionTitle: { color: theme.colors.text },
+    sectionHint: { color: theme.colors.textSecondary },
+    scoreItem: { backgroundColor: theme.colors.surface },
+    scoreName: { color: theme.colors.text },
+    scoreValue: { color: theme.colors.accent },
+    scoreDescription: { color: theme.colors.textSecondary },
+    sliderButton: { backgroundColor: theme.colors.card, borderColor: theme.colors.border },
+    sliderButtonText: { color: theme.colors.textSecondary },
+    saveButton: { backgroundColor: theme.colors.primary },
+  };
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
     setShowDatePicker(false);
@@ -118,124 +142,130 @@ export default function AddSensoryProfileScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.push('/sensory/list')}>
-          <Text style={styles.cancelButton}>취소</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>감각 프로파일 추가</Text>
-        <View style={{ width: 50 }} />
-      </View>
-
-      <ScrollView style={styles.content}>
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>날짜 *</Text>
-          {Platform.OS === 'web' ? (
-            <TextInput
-              style={styles.input}
-              value={date}
-              onChangeText={setDate}
-              placeholder="YYYY-MM-DD"
-              editable={!loading}
-              // @ts-ignore - web only property
-              type="date"
-            />
-          ) : (
-            <>
-              <TouchableOpacity
-                style={styles.input}
-                onPress={() => !loading && setShowDatePicker(true)}
-                disabled={loading}
-              >
-                <Text style={date ? styles.inputText : styles.placeholderText}>
-                  {date || 'YYYY-MM-DD'}
-                </Text>
-              </TouchableOpacity>
-              {showDatePicker && (
-                <DateTimePicker
-                  value={getDate(date)}
-                  mode="date"
-                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                  onChange={handleDateChange}
-                />
-              )}
-            </>
-          )}
-          <Text style={styles.hint}>평가한 날짜를 선택하세요</Text>
+    <SafeAreaView style={[styles.container, ds.container]} edges={['top']}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.flexOne}
+      >
+        <View style={[styles.header, ds.header]}>
+          <TouchableOpacity onPress={() => router.push('/sensory/list')}>
+            <Text style={[styles.cancelButton, ds.cancelButton]}>취소</Text>
+          </TouchableOpacity>
+          <Text style={[styles.headerTitle, ds.headerTitle]}>감각 프로파일 추가</Text>
+          <View style={{ width: 50 }} />
         </View>
 
-        <View style={styles.scoresSection}>
-          <Text style={styles.sectionTitle}>감각 영역 평가</Text>
-          <Text style={styles.sectionHint}>각 영역을 0-10점으로 평가하세요 (0: 매우 낮음, 10: 매우 높음)</Text>
+        <ScrollView style={styles.content}>
+          <View style={styles.formGroup}>
+            <Text style={[styles.label, ds.label]}>날짜 *</Text>
+            {Platform.OS === 'web' ? (
+              <TextInput
+                style={[styles.input, ds.input]}
+                value={date}
+                onChangeText={setDate}
+                placeholder="YYYY-MM-DD"
+                placeholderTextColor={theme.colors.textMuted}
+                editable={!loading}
+                // @ts-ignore - web only property
+                type="date"
+              />
+            ) : (
+              <>
+                <TouchableOpacity
+                  style={[styles.input, ds.input]}
+                  onPress={() => !loading && setShowDatePicker(true)}
+                  disabled={loading}
+                >
+                  <Text style={date ? [styles.inputText, ds.inputText] : [styles.placeholderText, ds.placeholderText]}>
+                    {date || 'YYYY-MM-DD'}
+                  </Text>
+                </TouchableOpacity>
+                {showDatePicker && (
+                  <DateTimePicker
+                    value={getDate(date)}
+                    mode="date"
+                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                    onChange={handleDateChange}
+                  />
+                )}
+              </>
+            )}
+            <Text style={[styles.hint, ds.hint]}>평가한 날짜를 선택하세요</Text>
+          </View>
 
-          {SENSORY_TYPES.map((type) => (
-            <View key={type.key} style={styles.scoreItem}>
-              <View style={styles.scoreHeader}>
-                <View style={styles.scoreTitleRow}>
-                  <Text style={styles.scoreIcon}>{type.icon}</Text>
-                  <Text style={styles.scoreName}>{type.name}</Text>
+          <View style={styles.scoresSection}>
+            <Text style={[styles.sectionTitle, ds.sectionTitle]}>감각 영역 평가</Text>
+            <Text style={[styles.sectionHint, ds.sectionHint]}>각 영역을 0-10점으로 평가하세요 (0: 매우 낮음, 10: 매우 높음)</Text>
+
+            {SENSORY_TYPES.map((type) => (
+              <View key={type.key} style={[styles.scoreItem, ds.scoreItem]}>
+                <View style={styles.scoreHeader}>
+                  <View style={styles.scoreTitleRow}>
+                    <Text style={styles.scoreIcon}>{type.icon}</Text>
+                    <Text style={[styles.scoreName, ds.scoreName]}>{type.name}</Text>
+                  </View>
+                  <Text style={[styles.scoreValue, ds.scoreValue]}>{scores[type.key as keyof typeof scores]}</Text>
                 </View>
-                <Text style={styles.scoreValue}>{scores[type.key as keyof typeof scores]}</Text>
-              </View>
-              <Text style={styles.scoreDescription}>{type.description}</Text>
+                <Text style={[styles.scoreDescription, ds.scoreDescription]}>{type.description}</Text>
 
-              <View style={styles.sliderContainer}>
-                <View style={styles.sliderButtons}>
-                  {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((value) => (
-                    <TouchableOpacity
-                      key={value}
-                      style={[
-                        styles.sliderButton,
-                        scores[type.key as keyof typeof scores] === value && styles.sliderButtonActive,
-                      ]}
-                      onPress={() => updateScore(type.key, value)}
-                      disabled={loading}
-                    >
-                      <Text
+                <View style={styles.sliderContainer}>
+                  <View style={styles.sliderButtons}>
+                    {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((value) => (
+                      <TouchableOpacity
+                        key={value}
                         style={[
-                          styles.sliderButtonText,
-                          scores[type.key as keyof typeof scores] === value && styles.sliderButtonTextActive,
+                          styles.sliderButton,
+                          ds.sliderButton,
+                          scores[type.key as keyof typeof scores] === value && styles.sliderButtonActive,
                         ]}
+                        onPress={() => updateScore(type.key, value)}
+                        disabled={loading}
                       >
-                        {value}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
+                        <Text
+                          style={[
+                            styles.sliderButtonText,
+                            ds.sliderButtonText,
+                            scores[type.key as keyof typeof scores] === value && styles.sliderButtonTextActive,
+                          ]}
+                        >
+                          {value}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
                 </View>
               </View>
-            </View>
-          ))}
-        </View>
+            ))}
+          </View>
 
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>메모</Text>
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            value={notes}
-            onChangeText={setNotes}
-            placeholder="관찰 내용이나 특이사항을 기록하세요"
-            multiline
-            numberOfLines={4}
-            editable={!loading}
-          />
-        </View>
+          <View style={styles.formGroup}>
+            <Text style={[styles.label, ds.label]}>메모</Text>
+            <TextInput
+              style={[styles.input, styles.textArea, ds.input]}
+              value={notes}
+              onChangeText={setNotes}
+              placeholder="관찰 내용이나 특이사항을 기록하세요"
+              placeholderTextColor={theme.colors.textMuted}
+              multiline
+              numberOfLines={4}
+              editable={!loading}
+            />
+          </View>
 
-        <TouchableOpacity
-          style={[styles.saveButton, loading && styles.saveButtonDisabled]}
-          onPress={handleSave}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.saveButtonText}>저장</Text>
-          )}
-        </TouchableOpacity>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          <TouchableOpacity
+            style={[styles.saveButton, ds.saveButton, loading && styles.saveButtonDisabled]}
+            onPress={handleSave}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.saveButtonText}>저장</Text>
+            )}
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -243,6 +273,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  flexOne: {
+    flex: 1,
   },
   header: {
     flexDirection: 'row',

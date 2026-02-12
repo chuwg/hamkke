@@ -11,9 +11,11 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useChild } from '../../contexts/ChildContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { milestonesApi } from '../../services/localStorage';
 
 const CATEGORIES = [
@@ -32,7 +34,23 @@ export default function AddMilestoneScreen() {
   const [loading, setLoading] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const { selectedChild } = useChild();
+  const { theme } = useTheme();
   const router = useRouter();
+
+  const ds = {
+    container: { backgroundColor: theme.colors.background },
+    header: { borderBottomColor: theme.colors.border },
+    cancelButton: { color: theme.colors.accent },
+    headerTitle: { color: theme.colors.text },
+    label: { color: theme.colors.text },
+    input: { borderColor: theme.colors.border, backgroundColor: theme.colors.surface, color: theme.colors.text },
+    categoryButton: { borderColor: theme.colors.border, backgroundColor: theme.colors.surface },
+    categoryButtonText: { color: theme.colors.textSecondary },
+    inputText: { color: theme.colors.text },
+    placeholderText: { color: theme.colors.textMuted },
+    checkboxLabel: { color: theme.colors.text },
+    saveButton: { backgroundColor: theme.colors.primary },
+  };
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
     setShowDatePicker(false);
@@ -101,135 +119,142 @@ export default function AddMilestoneScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.push('/milestone/list')}>
-          <Text style={styles.cancelButton}>취소</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>마일스톤 추가</Text>
-        <View style={{ width: 50 }} />
-      </View>
-
-      <ScrollView style={styles.content}>
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>카테고리 *</Text>
-          <View style={styles.categoryGrid}>
-            {CATEGORIES.map((cat) => (
-              <TouchableOpacity
-                key={cat.id}
-                style={[
-                  styles.categoryButton,
-                  category === cat.id && styles.categoryButtonActive,
-                ]}
-                onPress={() => setCategory(cat.id)}
-                disabled={loading}
-              >
-                <Text style={styles.categoryIcon}>{cat.icon}</Text>
-                <Text
-                  style={[
-                    styles.categoryButtonText,
-                    category === cat.id && styles.categoryButtonTextActive,
-                  ]}
-                >
-                  {cat.name}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>마일스톤 내용 *</Text>
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            value={milestone}
-            onChangeText={setMilestone}
-            placeholder="예: 눈을 마주치며 웃는다"
-            multiline
-            numberOfLines={3}
-            editable={!loading}
-          />
-        </View>
-
-        <View style={styles.formGroup}>
-          <TouchableOpacity
-            style={styles.checkboxRow}
-            onPress={() => setAchieved(!achieved)}
-            disabled={loading}
-          >
-            <View style={[styles.checkboxBox, achieved && styles.checkboxBoxChecked]}>
-              {achieved && <Text style={styles.checkboxCheck}>✓</Text>}
-            </View>
-            <Text style={styles.checkboxLabel}>달성함</Text>
+    <SafeAreaView style={[styles.container, ds.container]} edges={['top']}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.flexOne}
+      >
+        <View style={[styles.header, ds.header]}>
+          <TouchableOpacity onPress={() => router.push('/milestone/list')}>
+            <Text style={[styles.cancelButton, ds.cancelButton]}>취소</Text>
           </TouchableOpacity>
+          <Text style={[styles.headerTitle, ds.headerTitle]}>마일스톤 추가</Text>
+          <View style={{ width: 50 }} />
         </View>
 
-        {achieved && (
+        <ScrollView style={styles.content}>
           <View style={styles.formGroup}>
-            <Text style={styles.label}>달성 날짜 *</Text>
-            {Platform.OS === 'web' ? (
-              <TextInput
-                style={styles.input}
-                value={achievedDate}
-                onChangeText={setAchievedDate}
-                placeholder="YYYY-MM-DD"
-                editable={!loading}
-                // @ts-ignore - web only property
-                type="date"
-              />
-            ) : (
-              <>
+            <Text style={[styles.label, ds.label]}>카테고리 *</Text>
+            <View style={styles.categoryGrid}>
+              {CATEGORIES.map((cat) => (
                 <TouchableOpacity
-                  style={styles.input}
-                  onPress={() => !loading && setShowDatePicker(true)}
+                  key={cat.id}
+                  style={[
+                    styles.categoryButton,
+                    ds.categoryButton,
+                    category === cat.id && styles.categoryButtonActive,
+                  ]}
+                  onPress={() => setCategory(cat.id)}
                   disabled={loading}
                 >
-                  <Text style={achievedDate ? styles.inputText : styles.placeholderText}>
-                    {achievedDate || 'YYYY-MM-DD'}
+                  <Text style={styles.categoryIcon}>{cat.icon}</Text>
+                  <Text
+                    style={[
+                      styles.categoryButtonText,
+                      ds.categoryButtonText,
+                      category === cat.id && styles.categoryButtonTextActive,
+                    ]}
+                  >
+                    {cat.name}
                   </Text>
                 </TouchableOpacity>
-                {showDatePicker && (
-                  <DateTimePicker
-                    value={getDate(achievedDate)}
-                    mode="date"
-                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                    onChange={handleDateChange}
-                  />
-                )}
-              </>
-            )}
+              ))}
+            </View>
           </View>
-        )}
 
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>메모</Text>
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            value={notes}
-            onChangeText={setNotes}
-            placeholder="관련 메모나 관찰 내용을 기록하세요"
-            multiline
-            numberOfLines={4}
-            editable={!loading}
-          />
-        </View>
+          <View style={styles.formGroup}>
+            <Text style={[styles.label, ds.label]}>마일스톤 내용 *</Text>
+            <TextInput
+              style={[styles.input, styles.textArea, ds.input]}
+              value={milestone}
+              onChangeText={setMilestone}
+              placeholder="예: 눈을 마주치며 웃는다"
+              placeholderTextColor={theme.colors.textMuted}
+              multiline
+              numberOfLines={3}
+              editable={!loading}
+            />
+          </View>
 
-        <TouchableOpacity
-          style={[styles.saveButton, loading && styles.saveButtonDisabled]}
-          onPress={handleSave}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.saveButtonText}>저장</Text>
+          <View style={styles.formGroup}>
+            <TouchableOpacity
+              style={styles.checkboxRow}
+              onPress={() => setAchieved(!achieved)}
+              disabled={loading}
+            >
+              <View style={[styles.checkboxBox, achieved && styles.checkboxBoxChecked]}>
+                {achieved && <Text style={styles.checkboxCheck}>✓</Text>}
+              </View>
+              <Text style={[styles.checkboxLabel, ds.checkboxLabel]}>달성함</Text>
+            </TouchableOpacity>
+          </View>
+
+          {achieved && (
+            <View style={styles.formGroup}>
+              <Text style={[styles.label, ds.label]}>달성 날짜 *</Text>
+              {Platform.OS === 'web' ? (
+                <TextInput
+                  style={[styles.input, ds.input]}
+                  value={achievedDate}
+                  onChangeText={setAchievedDate}
+                  placeholder="YYYY-MM-DD"
+                  placeholderTextColor={theme.colors.textMuted}
+                  editable={!loading}
+                  // @ts-ignore - web only property
+                  type="date"
+                />
+              ) : (
+                <>
+                  <TouchableOpacity
+                    style={[styles.input, ds.input]}
+                    onPress={() => !loading && setShowDatePicker(true)}
+                    disabled={loading}
+                  >
+                    <Text style={achievedDate ? [styles.inputText, ds.inputText] : [styles.placeholderText, ds.placeholderText]}>
+                      {achievedDate || 'YYYY-MM-DD'}
+                    </Text>
+                  </TouchableOpacity>
+                  {showDatePicker && (
+                    <DateTimePicker
+                      value={getDate(achievedDate)}
+                      mode="date"
+                      display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                      onChange={handleDateChange}
+                    />
+                  )}
+                </>
+              )}
+            </View>
           )}
-        </TouchableOpacity>
-      </ScrollView>
-    </KeyboardAvoidingView>
+
+          <View style={styles.formGroup}>
+            <Text style={[styles.label, ds.label]}>메모</Text>
+            <TextInput
+              style={[styles.input, styles.textArea, ds.input]}
+              value={notes}
+              onChangeText={setNotes}
+              placeholder="관련 메모나 관찰 내용을 기록하세요"
+              placeholderTextColor={theme.colors.textMuted}
+              multiline
+              numberOfLines={4}
+              editable={!loading}
+            />
+          </View>
+
+          <TouchableOpacity
+            style={[styles.saveButton, ds.saveButton, loading && styles.saveButtonDisabled]}
+            onPress={handleSave}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.saveButtonText}>저장</Text>
+            )}
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -237,6 +262,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  flexOne: {
+    flex: 1,
   },
   header: {
     flexDirection: 'row',

@@ -11,9 +11,11 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useChild } from '../../contexts/ChildContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { therapyRecordsApi } from '../../services/localStorage';
 
 const THERAPY_TYPES = [
@@ -46,7 +48,23 @@ export default function AddTherapyRecordScreen() {
   const [loading, setLoading] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const { selectedChild } = useChild();
+  const { theme } = useTheme();
   const router = useRouter();
+
+  const ds = {
+    container: { backgroundColor: theme.colors.background },
+    header: { borderBottomColor: theme.colors.border },
+    cancelButton: { color: theme.colors.accent },
+    headerTitle: { color: theme.colors.text },
+    label: { color: theme.colors.text },
+    input: { borderColor: theme.colors.border, backgroundColor: theme.colors.surface, color: theme.colors.text },
+    hint: { color: theme.colors.textMuted },
+    therapyButton: { borderColor: theme.colors.border, backgroundColor: theme.colors.surface },
+    therapyButtonText: { color: theme.colors.textSecondary },
+    inputText: { color: theme.colors.text },
+    placeholderText: { color: theme.colors.textMuted },
+    saveButton: { backgroundColor: theme.colors.primary },
+  };
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
     setShowDatePicker(false);
@@ -118,139 +136,148 @@ export default function AddTherapyRecordScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.push('/(tabs)/records')}>
-          <Text style={styles.cancelButton}>취소</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>치료 기록 추가</Text>
-        <View style={{ width: 50 }} />
-      </View>
+    <SafeAreaView style={[styles.container, ds.container]} edges={['top']}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.flexOne}
+      >
+        <View style={[styles.header, ds.header]}>
+          <TouchableOpacity onPress={() => router.push('/(tabs)/records')}>
+            <Text style={[styles.cancelButton, ds.cancelButton]}>취소</Text>
+          </TouchableOpacity>
+          <Text style={[styles.headerTitle, ds.headerTitle]}>치료 기록 추가</Text>
+          <View style={{ width: 50 }} />
+        </View>
 
-      <ScrollView style={styles.content}>
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>치료 유형 *</Text>
-          <View style={styles.therapyTypeGrid}>
-            {THERAPY_TYPES.map((type) => (
-              <TouchableOpacity
-                key={type}
-                style={[
-                  styles.therapyTypeButton,
-                  therapyType === type && styles.therapyTypeButtonActive,
-                ]}
-                onPress={() => setTherapyType(type)}
-                disabled={loading}
-              >
-                <Text
+        <ScrollView style={styles.content}>
+          <View style={styles.formGroup}>
+            <Text style={[styles.label, ds.label]}>치료 유형 *</Text>
+            <View style={styles.therapyTypeGrid}>
+              {THERAPY_TYPES.map((type) => (
+                <TouchableOpacity
+                  key={type}
                   style={[
-                    styles.therapyTypeButtonText,
-                    therapyType === type && styles.therapyTypeButtonTextActive,
+                    styles.therapyTypeButton,
+                    ds.therapyButton,
+                    therapyType === type && styles.therapyTypeButtonActive,
                   ]}
+                  onPress={() => setTherapyType(type)}
+                  disabled={loading}
                 >
-                  {type}
-                </Text>
-              </TouchableOpacity>
-            ))}
+                  <Text
+                    style={[
+                      styles.therapyTypeButtonText,
+                      ds.therapyButtonText,
+                      therapyType === type && styles.therapyTypeButtonTextActive,
+                    ]}
+                  >
+                    {type}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            {therapyType === '기타' && (
+              <TextInput
+                style={[styles.input, ds.input, { marginTop: 10 }]}
+                value={customTherapyType}
+                onChangeText={setCustomTherapyType}
+                placeholder="치료 유형을 입력하세요"
+                placeholderTextColor={theme.colors.textMuted}
+                editable={!loading}
+              />
+            )}
           </View>
-          {therapyType === '기타' && (
+
+          <View style={styles.formGroup}>
+            <Text style={[styles.label, ds.label]}>날짜 *</Text>
+            {Platform.OS === 'web' ? (
+              <TextInput
+                style={[styles.input, ds.input]}
+                value={date}
+                onChangeText={setDate}
+                placeholder="YYYY-MM-DD"
+                placeholderTextColor={theme.colors.textMuted}
+                editable={!loading}
+                // @ts-ignore - web only property
+                type="date"
+              />
+            ) : (
+              <>
+                <TouchableOpacity
+                  style={[styles.input, ds.input]}
+                  onPress={() => !loading && setShowDatePicker(true)}
+                  disabled={loading}
+                >
+                  <Text style={date ? [styles.inputText, ds.inputText] : [styles.placeholderText, ds.placeholderText]}>
+                    {date || 'YYYY-MM-DD'}
+                  </Text>
+                </TouchableOpacity>
+                {showDatePicker && (
+                  <DateTimePicker
+                    value={getDate(date)}
+                    mode="date"
+                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                    onChange={handleDateChange}
+                  />
+                )}
+              </>
+            )}
+          </View>
+
+          <View style={styles.formGroup}>
+            <Text style={[styles.label, ds.label]}>치료 시간 (분) *</Text>
             <TextInput
-              style={[styles.input, { marginTop: 10 }]}
-              value={customTherapyType}
-              onChangeText={setCustomTherapyType}
-              placeholder="치료 유형을 입력하세요"
+              style={[styles.input, ds.input]}
+              value={durationMinutes}
+              onChangeText={setDurationMinutes}
+              placeholder="예: 60"
+              placeholderTextColor={theme.colors.textMuted}
+              keyboardType="numeric"
               editable={!loading}
             />
-          )}
-        </View>
+            <Text style={[styles.hint, ds.hint]}>분 단위로 입력하세요 (예: 30분, 60분)</Text>
+          </View>
 
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>날짜 *</Text>
-          {Platform.OS === 'web' ? (
+          <View style={styles.formGroup}>
+            <Text style={[styles.label, ds.label]}>치료사 이름</Text>
             <TextInput
-              style={styles.input}
-              value={date}
-              onChangeText={setDate}
-              placeholder="YYYY-MM-DD"
+              style={[styles.input, ds.input]}
+              value={therapistName}
+              onChangeText={setTherapistName}
+              placeholder="예: 김선생님"
+              placeholderTextColor={theme.colors.textMuted}
               editable={!loading}
-              // @ts-ignore - web only property
-              type="date"
             />
-          ) : (
-            <>
-              <TouchableOpacity
-                style={styles.input}
-                onPress={() => !loading && setShowDatePicker(true)}
-                disabled={loading}
-              >
-                <Text style={date ? styles.inputText : styles.placeholderText}>
-                  {date || 'YYYY-MM-DD'}
-                </Text>
-              </TouchableOpacity>
-              {showDatePicker && (
-                <DateTimePicker
-                  value={getDate(date)}
-                  mode="date"
-                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                  onChange={handleDateChange}
-                />
-              )}
-            </>
-          )}
-        </View>
+          </View>
 
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>치료 시간 (분) *</Text>
-          <TextInput
-            style={styles.input}
-            value={durationMinutes}
-            onChangeText={setDurationMinutes}
-            placeholder="예: 60"
-            keyboardType="numeric"
-            editable={!loading}
-          />
-          <Text style={styles.hint}>분 단위로 입력하세요 (예: 30분, 60분)</Text>
-        </View>
+          <View style={styles.formGroup}>
+            <Text style={[styles.label, ds.label]}>메모</Text>
+            <TextInput
+              style={[styles.input, styles.textArea, ds.input]}
+              value={notes}
+              onChangeText={setNotes}
+              placeholder="치료 내용, 아이 반응 등을 기록하세요"
+              placeholderTextColor={theme.colors.textMuted}
+              multiline
+              numberOfLines={6}
+              editable={!loading}
+            />
+          </View>
 
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>치료사 이름</Text>
-          <TextInput
-            style={styles.input}
-            value={therapistName}
-            onChangeText={setTherapistName}
-            placeholder="예: 김선생님"
-            editable={!loading}
-          />
-        </View>
-
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>메모</Text>
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            value={notes}
-            onChangeText={setNotes}
-            placeholder="치료 내용, 아이 반응 등을 기록하세요"
-            multiline
-            numberOfLines={6}
-            editable={!loading}
-          />
-        </View>
-
-        <TouchableOpacity
-          style={[styles.saveButton, loading && styles.saveButtonDisabled]}
-          onPress={handleSave}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.saveButtonText}>저장</Text>
-          )}
-        </TouchableOpacity>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          <TouchableOpacity
+            style={[styles.saveButton, ds.saveButton, loading && styles.saveButtonDisabled]}
+            onPress={handleSave}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.saveButtonText}>저장</Text>
+            )}
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -258,6 +285,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  flexOne: {
+    flex: 1,
   },
   header: {
     flexDirection: 'row',

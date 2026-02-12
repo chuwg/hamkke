@@ -5,7 +5,10 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Platform,
+  Linking,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import FooterNav from '../../components/FooterNav';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -208,8 +211,23 @@ export default function EducationGuideScreen() {
     setSelectedStage(selectedStage === stageId ? null : stageId);
   };
 
+  const handleLinkPress = async (url: string) => {
+    if (Platform.OS === 'web') {
+      window.open(url, '_blank');
+    } else {
+      try {
+        const canOpen = await Linking.canOpenURL(url);
+        if (canOpen) {
+          await Linking.openURL(url);
+        }
+      } catch (error) {
+        console.error('URL 열기 실패:', error);
+      }
+    }
+  };
+
   return (
-    <View style={[styles.container, ds.container]}>
+    <SafeAreaView style={[styles.container, ds.container]} edges={['top']}>
       <ScrollView style={styles.content}>
         {/* 헤더 */}
         <View style={[styles.header, ds.header]}>
@@ -305,22 +323,14 @@ export default function EducationGuideScreen() {
           <View style={styles.linksContainer}>
             <TouchableOpacity
               style={[styles.linkButton, ds.linkButton]}
-              onPress={() => {
-                if (typeof window !== 'undefined') {
-                  window.open('https://www.nise.go.kr', '_blank');
-                }
-              }}
+              onPress={() => handleLinkPress('https://www.nise.go.kr')}
             >
               <Text style={styles.linkIcon}>📖</Text>
               <Text style={[styles.linkText, ds.linkText]}>국립특수교육원</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.linkButton, ds.linkButton]}
-              onPress={() => {
-                if (typeof window !== 'undefined') {
-                  window.open('https://www.schoolinfo.go.kr', '_blank');
-                }
-              }}
+              onPress={() => handleLinkPress('https://www.schoolinfo.go.kr')}
             >
               <Text style={styles.linkIcon}>🏫</Text>
               <Text style={[styles.linkText, ds.linkText]}>학교알리미</Text>
@@ -332,7 +342,7 @@ export default function EducationGuideScreen() {
       </ScrollView>
 
       <FooterNav />
-    </View>
+    </SafeAreaView>
   );
 }
 

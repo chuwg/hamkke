@@ -9,6 +9,7 @@ import {
   Linking,
   Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Picker } from '@react-native-picker/picker';
 import FooterNav from '../../components/FooterNav';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -158,7 +159,7 @@ export default function SchoolScreen() {
   const totalPages = Math.ceil(schools.length / itemsPerPage);
 
   return (
-    <View style={[styles.wrapper, ds.wrapper]}>
+    <SafeAreaView style={[styles.wrapper, ds.wrapper]} edges={['top']}>
     <ScrollView style={[styles.container, ds.container]}>
       <View style={styles.content}>
         {/* 헤더 */}
@@ -429,7 +430,7 @@ export default function SchoolScreen() {
       </View>
     </ScrollView>
     <FooterNav />
-  </View>
+  </SafeAreaView>
   );
 }
 
