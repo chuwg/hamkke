@@ -136,7 +136,6 @@ export default function AddSensoryProfileScreen() {
       } else {
         Alert.alert('오류', '감각 프로파일 추가 중 오류가 발생했습니다.');
       }
-      console.error(error);
       setLoading(false);
     }
   };

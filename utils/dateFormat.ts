@@ -63,7 +63,42 @@ export function isValidTime(timeString: string): boolean {
 
 // 로컬 날짜/시간을 ISO 문자열로 변환 (타임존 문제 해결)
 export function toLocalISOString(date: string, time: string): string {
-  // timezone 정보 없이 로컬 시간 그대로 저장
-  // Supabase가 이를 timestamp without timezone처럼 처리하도록
   return `${date}T${time}:00`;
+}
+
+// ===== 한국어 날짜 표시용 함수들 =====
+
+// "N월 D일" 형식 (홈 화면 등)
+export function formatDateShort(dateString: string): string {
+  const datePart = dateString.split('T')[0];
+  const [, month, day] = datePart.split('-');
+  return `${parseInt(month)}월 ${parseInt(day)}일`;
+}
+
+// "YYYY년 N월 D일" 형식 (상세 화면)
+export function formatDateFull(dateString: string): string {
+  const datePart = dateString.split('T')[0];
+  const [year, month, day] = datePart.split('-');
+  return `${year}년 ${parseInt(month)}월 ${parseInt(day)}일`;
+}
+
+// ISO 문자열에서 "HH:MM" 추출
+export function formatTimeFromISO(dateString: string): string {
+  const parts = dateString.split('T');
+  if (parts.length < 2) return '';
+  const timePart = parts[1].split('+')[0].split('-')[0].split('Z')[0];
+  const [hour, minute] = timePart.split(':');
+  return `${hour}:${minute}`;
+}
+
+// 한국어 요일 이름
+export function getDayName(dateString: string): string {
+  const date = new Date(dateString.split('T')[0]);
+  const days = ['일', '월', '화', '수', '목', '금', '토'];
+  return days[date.getDay()];
+}
+
+// Date 객체에서 YYYY-MM-DD 추출 (타임존 안전)
+export function getISODate(date: Date): string {
+  return date.toISOString().split('T')[0];
 }

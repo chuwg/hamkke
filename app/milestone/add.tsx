@@ -113,7 +113,6 @@ export default function AddMilestoneScreen() {
       } else {
         Alert.alert('오류', '마일스톤 추가 중 오류가 발생했습니다.');
       }
-      console.error(error);
       setLoading(false);
     }
   };

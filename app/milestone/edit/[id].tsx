@@ -55,7 +55,7 @@ export default function EditMilestoneScreen() {
         setNotes(milestoneData.notes || '');
       }
     } catch (error) {
-      console.error('Failed to load milestone:', error);
+      // load failure handled by UI state
     } finally {
       setInitialLoading(false);
     }
@@ -112,7 +112,6 @@ export default function EditMilestoneScreen() {
       } else {
         Alert.alert('오류', '마일스톤 수정 중 오류가 발생했습니다.');
       }
-      console.error(error);
       setLoading(false);
     }
   };

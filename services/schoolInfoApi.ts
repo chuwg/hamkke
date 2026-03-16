@@ -500,7 +500,6 @@ export async function fetchSpecialClassSchools(params: {
       totalCount: schools.length,
     };
   } catch (error) {
-    console.error('특수학급 학교 조회 오류:', error);
     throw error;
   }
 }

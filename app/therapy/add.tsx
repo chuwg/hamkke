@@ -130,7 +130,6 @@ export default function AddTherapyRecordScreen() {
       } else {
         Alert.alert('오류', '치료 기록 추가 중 오류가 발생했습니다.');
       }
-      console.error(error);
       setLoading(false);
     }
   };

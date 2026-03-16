@@ -11,8 +11,9 @@ import {
 import { useRouter } from 'expo-router';
 import { useChild } from '../../contexts/ChildContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import { schedulesApi } from '../../services/localStorage';
-import { Schedule, RecurrenceRule } from '../../types';
+import { schedulesApi, therapyRecordsApi, milestonesApi } from '../../services/localStorage';
+import { Schedule, RecurrenceRule, TherapyRecord, Milestone } from '../../types';
+import { formatDateShort, formatTimeFromISO, getDayName } from '../../utils/dateFormat';
 
 // 반복 일정을 확장하는 헬퍼 함수
 function expandRecurringSchedules(schedules: Schedule[], startDate: Date, endDate: Date): Schedule[] {
@@ -50,7 +51,6 @@ function expandRecurringSchedules(schedules: Schedule[], startDate: Date, endDat
         current.setDate(current.getDate() + 1);
       }
     } catch (error) {
-      console.error('Failed to parse recurrence rule:', error);
       expanded.push(schedule);
     }
   });
@@ -62,6 +62,8 @@ export default function HomeScreen() {
   const { selectedChild } = useChild();
   const { theme } = useTheme();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [therapyRecords, setTherapyRecords] = useState<TherapyRecord[]>([]);
+  const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
@@ -96,21 +98,29 @@ export default function HomeScreen() {
 
   useEffect(() => {
     if (selectedChild) {
-      loadSchedules();
+      loadData();
     } else {
       setSchedules([]);
+      setTherapyRecords([]);
+      setMilestones([]);
     }
   }, [selectedChild]);
 
-  const loadSchedules = async () => {
+  const loadData = async () => {
     if (!selectedChild) return;
 
     setLoading(true);
     try {
-      const data = await schedulesApi.getByChildId(selectedChild.id);
-      setSchedules(data);
+      const [scheduleData, therapyData, milestoneData] = await Promise.all([
+        schedulesApi.getByChildId(selectedChild.id),
+        therapyRecordsApi.getByChildId(selectedChild.id),
+        milestonesApi.getByChildId(selectedChild.id),
+      ]);
+      setSchedules(scheduleData);
+      setTherapyRecords(therapyData);
+      setMilestones(milestoneData);
     } catch (error) {
-      console.error('Failed to load schedules:', error);
+      // load failure handled by UI state
     } finally {
       setLoading(false);
     }
@@ -118,29 +128,12 @@ export default function HomeScreen() {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadSchedules();
+    await loadData();
     setRefreshing(false);
   };
 
-  const formatTime = (dateString: string) => {
-    const parts = dateString.split('T');
-    if (parts.length < 2) return '';
-    const timePart = parts[1].split('+')[0].split('-')[0].split('Z')[0];
-    const [hour, minute] = timePart.split(':');
-    return `${hour}:${minute}`;
-  };
-
-  const formatDate = (dateString: string) => {
-    const datePart = dateString.split('T')[0];
-    const [year, month, day] = datePart.split('-');
-    return `${parseInt(month)}월 ${parseInt(day)}일`;
-  };
-
-  const getDayName = (dateString: string) => {
-    const date = new Date(dateString.split('T')[0]);
-    const days = ['일', '월', '화', '수', '목', '금', '토'];
-    return days[date.getDay()];
-  };
+  const formatTime = formatTimeFromISO;
+  const formatDate = formatDateShort;
 
   // 오늘 날짜
   const today = new Date();
@@ -172,6 +165,38 @@ export default function HomeScreen() {
     const scheduleDate = new Date(s.start_time.split('T')[0]);
     return scheduleDate >= today && scheduleDate <= nextWeek;
   }).length;
+
+  // 치료 기록 요약
+  const lastTherapy = therapyRecords.length > 0
+    ? therapyRecords.sort((a, b) => b.date.localeCompare(a.date))[0]
+    : null;
+
+  const thisMonthTherapyHours = therapyRecords
+    .filter(r => {
+      const month = r.date.substring(0, 7);
+      const currentMonth = todayStr.substring(0, 7);
+      return month === currentMonth;
+    })
+    .reduce((sum, r) => sum + r.duration_minutes, 0);
+
+  // 자녀 나이 계산
+  const getChildAge = () => {
+    if (!selectedChild?.birth_date) return '';
+    const birth = new Date(selectedChild.birth_date);
+    const now = new Date();
+    let years = now.getFullYear() - birth.getFullYear();
+    let months = now.getMonth() - birth.getMonth();
+    if (months < 0) { years--; months += 12; }
+    if (now.getDate() < birth.getDate()) months--;
+    if (months < 0) { years--; months += 12; }
+    if (years > 0) return `${years}세 ${months}개월`;
+    return `${months}개월`;
+  };
+
+  // 마일스톤 진행률
+  const totalMilestones = milestones.length;
+  const achievedMilestones = milestones.filter(m => m.achieved).length;
+  const milestonePercent = totalMilestones > 0 ? Math.round((achievedMilestones / totalMilestones) * 100) : 0;
 
   if (!selectedChild) {
     return (
@@ -205,6 +230,9 @@ export default function HomeScreen() {
         <View>
           <Text style={[styles.greeting, dynamicStyles.greeting]}>안녕하세요 👋</Text>
           <Text style={[styles.childName, dynamicStyles.childName]}>{selectedChild.name}의 하루</Text>
+          {getChildAge() ? (
+            <Text style={[styles.childAge, dynamicStyles.dayText]}>{getChildAge()}</Text>
+          ) : null}
         </View>
         <View style={styles.dateContainer}>
           <Text style={[styles.dateText, dynamicStyles.dateText]}>{formatDate(todayStr)}</Text>
@@ -227,6 +255,60 @@ export default function HomeScreen() {
           <Text style={[styles.statLabel, dynamicStyles.statLabel]}>다가오는 일정</Text>
         </View>
       </View>
+
+      {/* 활동 요약 */}
+      {(therapyRecords.length > 0 || milestones.length > 0) && (
+        <View style={styles.summarySection}>
+          {lastTherapy && (
+            <TouchableOpacity
+              style={[styles.summaryCard, dynamicStyles.statCard]}
+              onPress={() => router.push('/(tabs)/records')}
+            >
+              <Text style={styles.summaryIcon}>💊</Text>
+              <View style={styles.summaryContent}>
+                <Text style={[styles.summaryLabel, dynamicStyles.statLabel]}>마지막 치료</Text>
+                <Text style={[styles.summaryValue, dynamicStyles.statNumber]}>
+                  {formatDate(lastTherapy.date)}
+                </Text>
+                <Text style={[styles.summarySubtext, dynamicStyles.statLabel]}>
+                  {lastTherapy.therapy_type} · {lastTherapy.duration_minutes}분
+                </Text>
+              </View>
+            </TouchableOpacity>
+          )}
+          {thisMonthTherapyHours > 0 && (
+            <TouchableOpacity
+              style={[styles.summaryCard, dynamicStyles.statCard]}
+              onPress={() => router.push('/(tabs)/records')}
+            >
+              <Text style={styles.summaryIcon}>⏱️</Text>
+              <View style={styles.summaryContent}>
+                <Text style={[styles.summaryLabel, dynamicStyles.statLabel]}>이번 달 치료</Text>
+                <Text style={[styles.summaryValue, dynamicStyles.statNumber]}>
+                  {Math.floor(thisMonthTherapyHours / 60)}시간 {thisMonthTherapyHours % 60}분
+                </Text>
+              </View>
+            </TouchableOpacity>
+          )}
+          {totalMilestones > 0 && (
+            <TouchableOpacity
+              style={[styles.summaryCard, dynamicStyles.statCard]}
+              onPress={() => router.push('/milestone/list')}
+            >
+              <Text style={styles.summaryIcon}>🎯</Text>
+              <View style={styles.summaryContent}>
+                <Text style={[styles.summaryLabel, dynamicStyles.statLabel]}>마일스톤 달성</Text>
+                <Text style={[styles.summaryValue, dynamicStyles.statNumber]}>
+                  {milestonePercent}%
+                </Text>
+                <Text style={[styles.summarySubtext, dynamicStyles.statLabel]}>
+                  {achievedMilestones}/{totalMilestones} 완료
+                </Text>
+              </View>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
 
       {/* 빠른 액션 */}
       <View style={styles.quickActions}>
@@ -280,9 +362,13 @@ export default function HomeScreen() {
         {loading ? (
           <ActivityIndicator size="small" color={theme.colors.accent} style={{ marginTop: 10 }} />
         ) : todaySchedules.length === 0 ? (
-          <View style={[styles.emptySection, dynamicStyles.emptySection]}>
-            <Text style={[styles.emptySectionText, dynamicStyles.emptySectionText]}>오늘은 등록된 일정이 없습니다</Text>
-          </View>
+          <TouchableOpacity
+            style={[styles.emptySection, dynamicStyles.emptySection]}
+            onPress={() => router.push('/schedule/add')}
+          >
+            <Text style={[styles.emptySectionText, dynamicStyles.emptySectionText]}>오늘은 여유로운 하루예요</Text>
+            <Text style={[styles.emptySectionHint, { color: theme.colors.accent }]}>+ 일정 추가하기</Text>
+          </TouchableOpacity>
         ) : (
           todaySchedules.map((schedule, index) => (
             <TouchableOpacity
@@ -368,6 +454,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
   },
+  childAge: {
+    fontSize: 13,
+    color: '#666',
+    marginTop: 2,
+  },
   dateContainer: {
     alignItems: 'flex-end',
   },
@@ -407,6 +498,41 @@ const styles = StyleSheet.create({
   statLabel: {
     fontSize: 12,
     color: '#666',
+  },
+  summarySection: {
+    paddingHorizontal: 20,
+    marginBottom: 8,
+    gap: 10,
+  },
+  summaryCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  summaryIcon: {
+    fontSize: 28,
+    marginRight: 14,
+  },
+  summaryContent: {
+    flex: 1,
+  },
+  summaryLabel: {
+    fontSize: 12,
+    marginBottom: 2,
+  },
+  summaryValue: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  summarySubtext: {
+    fontSize: 12,
+    marginTop: 2,
   },
   quickActions: {
     flexDirection: 'row',
@@ -452,6 +578,11 @@ const styles = StyleSheet.create({
   emptySectionText: {
     fontSize: 14,
     color: '#999',
+  },
+  emptySectionHint: {
+    fontSize: 13,
+    fontWeight: '600',
+    marginTop: 8,
   },
   scheduleCard: {
     flexDirection: 'row',

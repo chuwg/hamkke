@@ -28,7 +28,6 @@ async function getItems<T>(key: string): Promise<T[]> {
     const data = await AsyncStorage.getItem(key);
     return data ? JSON.parse(data) : [];
   } catch (error) {
-    console.error(`Error getting ${key}:`, error);
     return [];
   }
 }
@@ -37,7 +36,6 @@ async function setItems<T>(key: string, items: T[]): Promise<void> {
   try {
     await AsyncStorage.setItem(key, JSON.stringify(items));
   } catch (error) {
-    console.error(`Error setting ${key}:`, error);
     throw error;
   }
 }
@@ -305,9 +303,34 @@ export const backupApi = {
 
       return { success: true, message: '데이터를 성공적으로 복원했습니다.' };
     } catch (error) {
-      console.error('Import error:', error);
       return { success: false, message: '데이터 복원 중 오류가 발생했습니다.' };
     }
+  },
+
+  // 치료 기록 CSV 내보내기
+  exportTherapyRecordsCSV: async (childId: string, childName: string): Promise<string> => {
+    const records = await getItems<TherapyRecord>(STORAGE_KEYS.THERAPY_RECORDS);
+    const filtered = records.filter(r => r.child_id === childId)
+      .sort((a, b) => b.date.localeCompare(a.date));
+
+    const header = '날짜,치료유형,시간(분),치료사,메모';
+    const rows = filtered.map(r =>
+      `${r.date},${r.therapy_type},${r.duration_minutes},${(r.therapist_name || '').replace(/,/g, ' ')},${(r.notes || '').replace(/,/g, ' ').replace(/\n/g, ' ')}`
+    );
+    return [header, ...rows].join('\n');
+  },
+
+  // 일정 CSV 내보내기
+  exportSchedulesCSV: async (childId: string): Promise<string> => {
+    const schedules = await getItems<Schedule>(STORAGE_KEYS.SCHEDULES);
+    const filtered = schedules.filter(s => s.child_id === childId)
+      .sort((a, b) => b.start_time.localeCompare(a.start_time));
+
+    const header = '제목,시작시간,종료시간,설명,반복,완료';
+    const rows = filtered.map(s =>
+      `${s.title.replace(/,/g, ' ')},${s.start_time},${s.end_time},${(s.description || '').replace(/,/g, ' ').replace(/\n/g, ' ')},${s.is_recurring ? 'O' : 'X'},${s.completed ? 'O' : 'X'}`
+    );
+    return [header, ...rows].join('\n');
   },
 
   // 모든 데이터 삭제

@@ -221,7 +221,6 @@ export default function EducationGuideScreen() {
           await Linking.openURL(url);
         }
       } catch (error) {
-        console.error('URL 열기 실패:', error);
       }
     }
   };

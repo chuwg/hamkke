@@ -75,7 +75,6 @@ export async function fetchWelfareCenters(params: {
     }
     return await response.json();
   } catch (error) {
-    console.error('장애인복지관 API 오류:', error);
     throw error;
   }
 }
@@ -109,7 +108,6 @@ export async function fetchRehabCenters(params: {
     }
     return await response.json();
   } catch (error) {
-    console.error('발달재활 제공기관 API 오류:', error);
     throw error;
   }
 }

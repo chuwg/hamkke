@@ -96,7 +96,6 @@ export default function SchoolScreen() {
 
       setSchools(result.schools);
     } catch (err) {
-      console.error('검색 오류:', err);
       setError('데이터를 불러오는 중 오류가 발생했습니다.');
       setSchools([]);
     } finally {

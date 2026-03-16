@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Platform,
+  TextInput,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Calendar } from 'react-native-calendars';
@@ -15,6 +16,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { schedulesApi } from '../../services/localStorage';
 import { Schedule, RecurrenceRule } from '../../types';
 import { calendarService } from '../../services/calendar';
+import { formatDateFull, formatTimeFromISO } from '../../utils/dateFormat';
 
 // 반복 일정을 확장하는 헬퍼 함수
 function expandRecurringSchedules(schedules: Schedule[], startDate: Date, endDate: Date): Schedule[] {
@@ -55,7 +57,6 @@ function expandRecurringSchedules(schedules: Schedule[], startDate: Date, endDat
         current.setDate(current.getDate() + 1);
       }
     } catch (error) {
-      console.error('Failed to parse recurrence rule:', error);
       expanded.push(schedule);
     }
   });
@@ -67,6 +68,7 @@ export default function ScheduleScreen() {
   const { selectedChild } = useChild();
   const { theme, isDark } = useTheme();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
   const [selectedDate, setSelectedDate] = useState('');
@@ -106,7 +108,7 @@ export default function ScheduleScreen() {
       const data = await schedulesApi.getByChildId(selectedChild.id);
       setSchedules(data);
     } catch (error) {
-      console.error('Failed to load schedules:', error);
+      // load failure handled by UI state
     } finally {
       setLoading(false);
     }
@@ -131,6 +133,15 @@ export default function ScheduleScreen() {
     router.push(`/schedule/edit/${scheduleId}`);
   };
 
+  const handleToggleComplete = async (schedule: Schedule) => {
+    try {
+      await schedulesApi.update(schedule.id, { completed: !schedule.completed });
+      await loadSchedules();
+    } catch (error) {
+      // toggle failure - silently ignore
+    }
+  };
+
   const handleDeleteSchedule = async (scheduleId: string, title: string, calendarEventId?: string) => {
     if (typeof window !== 'undefined' && window.confirm) {
       const confirmed = window.confirm(`"${title}" 일정을 삭제하시겠습니까?`);
@@ -145,34 +156,14 @@ export default function ScheduleScreen() {
           await schedulesApi.delete(scheduleId);
           await loadSchedules();
         } catch (error) {
-          console.error('Delete error:', error);
           window.alert('삭제 중 오류가 발생했습니다.');
         }
       }
     }
   };
 
-  const formatDateTime = (dateString: string) => {
-    // ISO 문자열을 직접 파싱 (timezone 변환 없이)
-    const parts = dateString.split('T');
-    if (parts.length < 2) return dateString;
-
-    const datePart = parts[0]; // YYYY-MM-DD
-    const timePart = parts[1].split('+')[0].split('-')[0].split('Z')[0]; // HH:MM:SS
-
-    const [year, month, day] = datePart.split('-');
-    const [hour, minute] = timePart.split(':');
-
-    return `${parseInt(month)}월 ${parseInt(day)}일 ${hour}:${minute}`;
-  };
-
-  const formatDate = (dateString: string) => {
-    // ISO 문자열에서 날짜 부분만 파싱
-    const datePart = dateString.split('T')[0]; // YYYY-MM-DD
-    const [year, month, day] = datePart.split('-');
-
-    return `${year}년 ${parseInt(month)}월 ${parseInt(day)}일`;
-  };
+  const formatDateTime = formatTimeFromISO;
+  const formatDate = formatDateFull;
 
   // 반복 일정 확장 (현재 달 ± 3개월)
   const today = new Date();
@@ -204,11 +195,18 @@ export default function ScheduleScreen() {
     return marked;
   };
 
-  // 날짜 필터링 (모든 뷰 모드에서 적용)
+  // 날짜 + 검색 필터링
   const filteredSchedules = expandedSchedules.filter(schedule => {
-    if (!selectedDate) return true;
-    const scheduleDate = schedule.start_time.split('T')[0];
-    return scheduleDate === selectedDate;
+    if (selectedDate) {
+      const scheduleDate = schedule.start_time.split('T')[0];
+      if (scheduleDate !== selectedDate) return false;
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      return schedule.title.toLowerCase().includes(q) ||
+        schedule.description?.toLowerCase().includes(q);
+    }
+    return true;
   });
 
   if (!selectedChild) {
@@ -251,6 +249,18 @@ export default function ScheduleScreen() {
           </Text>
         </TouchableOpacity>
       </View>
+
+      {schedules.length > 0 && (
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={[styles.searchInput, { backgroundColor: theme.colors.card, color: theme.colors.text, borderColor: theme.colors.border }]}
+            placeholder="일정 제목, 설명 검색..."
+            placeholderTextColor={theme.colors.textMuted}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
+      )}
 
       {loading ? (
         <ActivityIndicator size="large" color={theme.colors.accent} style={{ marginTop: 20 }} />
@@ -301,10 +311,16 @@ export default function ScheduleScreen() {
           data={filteredSchedules}
           keyExtractor={(item, index) => `${item.id}-${item.start_time}-${index}`}
           renderItem={({ item }) => (
-            <View style={[styles.scheduleCard, ds.scheduleCard]}>
+            <View style={[styles.scheduleCard, ds.scheduleCard, item.completed && styles.completedCard]}>
               <View style={styles.scheduleHeader}>
+                <TouchableOpacity
+                  style={[styles.completeToggle, item.completed && styles.completeToggleChecked]}
+                  onPress={() => handleToggleComplete(item)}
+                >
+                  <Text style={styles.completeToggleText}>{item.completed ? '✓' : ''}</Text>
+                </TouchableOpacity>
                 <View style={styles.scheduleMain}>
-                  <Text style={[styles.scheduleTitle, ds.scheduleTitle]}>{item.title}</Text>
+                  <Text style={[styles.scheduleTitle, ds.scheduleTitle, item.completed && styles.completedText]}>{item.title}</Text>
                   <Text style={[styles.scheduleDate, ds.scheduleDate]}>
                     {formatDate(item.start_time)}
                   </Text>
@@ -347,6 +363,16 @@ export default function ScheduleScreen() {
 }
 
 const styles = StyleSheet.create({
+  searchContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+  },
+  searchInput: {
+    padding: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    fontSize: 14,
+  },
   container: {
     flex: 1,
     backgroundColor: '#fff',
@@ -466,6 +492,32 @@ const styles = StyleSheet.create({
   },
   deleteButtonText: {
     color: '#fff',
+  },
+  completeToggle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#ccc',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+    marginTop: 2,
+  },
+  completeToggleChecked: {
+    backgroundColor: '#34C759',
+    borderColor: '#34C759',
+  },
+  completeToggleText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  completedCard: {
+    opacity: 0.6,
+  },
+  completedText: {
+    textDecorationLine: 'line-through',
   },
   viewToggle: {
     flexDirection: 'row',

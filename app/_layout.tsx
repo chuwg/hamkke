@@ -32,7 +32,6 @@ function RootLayoutNav() {
       const value = await AsyncStorage.getItem(ONBOARDING_COMPLETE_KEY);
       setOnboardingComplete(value === 'true');
     } catch (error) {
-      console.error('Failed to check onboarding status:', error);
       setOnboardingComplete(false);
     } finally {
       setIsReady(true);

@@ -6,12 +6,14 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
+  TextInput,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useChild } from '../../contexts/ChildContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { milestonesApi } from '../../services/localStorage';
 import { Milestone } from '../../types';
+import { formatDateFull } from '../../utils/dateFormat';
 import FooterNav from '../../components/FooterNav';
 
 const CATEGORIES = [
@@ -26,6 +28,7 @@ export default function MilestoneListScreen() {
   const { selectedChild } = useChild();
   const { theme } = useTheme();
   const [milestones, setMilestones] = useState<Milestone[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const router = useRouter();
@@ -67,7 +70,7 @@ export default function MilestoneListScreen() {
       const data = await milestonesApi.getByChildId(selectedChild.id);
       setMilestones(data);
     } catch (error) {
-      console.error('Failed to load milestones:', error);
+      // load failure handled by UI state
     } finally {
       setLoading(false);
     }
@@ -96,7 +99,6 @@ export default function MilestoneListScreen() {
       });
       await loadMilestones();
     } catch (error) {
-      console.error('Failed to update milestone:', error);
       if (typeof window !== 'undefined') {
         window.alert('마일스톤 업데이트 중 오류가 발생했습니다.');
       }
@@ -112,17 +114,13 @@ export default function MilestoneListScreen() {
           await milestonesApi.delete(milestoneId);
           await loadMilestones();
         } catch (error) {
-          console.error('Delete error:', error);
           window.alert('삭제 중 오류가 발생했습니다.');
         }
       }
     }
   };
 
-  const formatDate = (dateString: string) => {
-    const [year, month, day] = dateString.split('-');
-    return `${year}년 ${parseInt(month)}월 ${parseInt(day)}일`;
-  };
+  const formatDate = formatDateFull;
 
   const getCategoryIcon = (category: string) => {
     const cat = CATEGORIES.find(c => c.id === category);
@@ -134,10 +132,16 @@ export default function MilestoneListScreen() {
     return cat?.name || category;
   };
 
-  // 카테고리별 필터링
-  const filteredMilestones = selectedCategory === 'all'
-    ? milestones
-    : milestones.filter(m => m.category === selectedCategory);
+  // 카테고리 + 검색 필터링
+  const filteredMilestones = milestones.filter(m => {
+    if (selectedCategory !== 'all' && m.category !== selectedCategory) return false;
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      return m.milestone.toLowerCase().includes(q) ||
+        m.notes?.toLowerCase().includes(q);
+    }
+    return true;
+  });
 
   // 통계 계산
   const totalMilestones = milestones.length;
@@ -215,6 +219,18 @@ export default function MilestoneListScreen() {
           contentContainerStyle={{ paddingHorizontal: 20 }}
         />
       </View>
+
+      {milestones.length > 0 && (
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={[styles.searchInput, { backgroundColor: theme.colors.card, color: theme.colors.text, borderColor: theme.colors.border }]}
+            placeholder="마일스톤, 메모 검색..."
+            placeholderTextColor={theme.colors.textMuted}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
+      )}
 
       {loading ? (
         <ActivityIndicator size="large" color={theme.colors.accent} style={{ marginTop: 20 }} />
@@ -298,6 +314,16 @@ export default function MilestoneListScreen() {
 }
 
 const styles = StyleSheet.create({
+  searchContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+  },
+  searchInput: {
+    padding: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    fontSize: 14,
+  },
   container: {
     flex: 1,
     backgroundColor: '#fff',

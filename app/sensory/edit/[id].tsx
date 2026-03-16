@@ -67,7 +67,7 @@ export default function EditSensoryProfileScreen() {
         setNotes(profile.notes || '');
       }
     } catch (error) {
-      console.error('Failed to load sensory profile:', error);
+      // load failure handled by UI state
     } finally {
       setInitialLoading(false);
     }
@@ -125,7 +125,6 @@ export default function EditSensoryProfileScreen() {
       } else {
         Alert.alert('오류', '감각 프로파일 수정 중 오류가 발생했습니다.');
       }
-      console.error(error);
       setLoading(false);
     }
   };

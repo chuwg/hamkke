@@ -40,7 +40,7 @@ export function ChildProvider({ children: reactChildren }: { children: React.Rea
         }
       }
     } catch (error) {
-      console.error('Failed to fetch children:', error);
+      // fetch failure handled by UI state
     } finally {
       setLoading(false);
     }

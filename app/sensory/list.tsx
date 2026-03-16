@@ -13,6 +13,7 @@ import { useChild } from '../../contexts/ChildContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { sensoryProfilesApi } from '../../services/localStorage';
 import { SensoryProfile } from '../../types';
+import { formatDateFull, formatDateShort } from '../../utils/dateFormat';
 import RadarChart from '../../components/RadarChart';
 import FooterNav from '../../components/FooterNav';
 
@@ -77,7 +78,7 @@ export default function SensoryProfileListScreen() {
       const data = await sensoryProfilesApi.getByChildId(selectedChild.id);
       setProfiles(data);
     } catch (error) {
-      console.error('Failed to load sensory profiles:', error);
+      // load failure handled by UI state
     } finally {
       setLoading(false);
     }
@@ -106,17 +107,13 @@ export default function SensoryProfileListScreen() {
           await sensoryProfilesApi.delete(profileId);
           await loadProfiles();
         } catch (error) {
-          console.error('Delete error:', error);
           window.alert('삭제 중 오류가 발생했습니다.');
         }
       }
     }
   };
 
-  const formatDate = (dateString: string) => {
-    const [year, month, day] = dateString.split('-');
-    return `${year}년 ${parseInt(month)}월 ${parseInt(day)}일`;
-  };
+  const formatDate = formatDateFull;
 
   const getScoreColor = (score: number) => {
     if (score >= 8) return '#4CAF50'; // 높음 - 초록
@@ -134,11 +131,7 @@ export default function SensoryProfileListScreen() {
   const latestProfile = profiles.length > 0 ? profiles[0] : null;
   const latestAverage = latestProfile ? calculateAverage(latestProfile) : '0.0';
 
-  // 최근 평가 날짜 (간단 형식)
-  const getShortDate = (dateString: string) => {
-    const [year, month, day] = dateString.split('-');
-    return `${parseInt(month)}월 ${parseInt(day)}일`;
-  };
+  const getShortDate = formatDateShort;
 
   if (!selectedChild) {
     return (

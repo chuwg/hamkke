@@ -75,10 +75,6 @@ export default function EditScheduleScreen() {
         setTitle(schedule.title);
         setDescription(schedule.description || '');
 
-        console.log('=== DB에서 불러온 값 ===');
-        console.log('start_time:', schedule.start_time);
-        console.log('end_time:', schedule.end_time);
-
         // ISO 문자열을 직접 파싱 (timezone 변환 없이)
         // 형식: "2024-01-01T10:00:00+09:00" 또는 "2024-01-01T10:00:00"
         const startParts = schedule.start_time.split('T');
@@ -90,10 +86,6 @@ export default function EditScheduleScreen() {
         // 시간 (HH:MM) - timezone 정보 제거
         const startTimePart = startParts[1].split('+')[0].split('-')[0].split('Z')[0];
         const endTimePart = endParts[1].split('+')[0].split('-')[0].split('Z')[0];
-
-        console.log('파싱된 날짜:', startParts[0]);
-        console.log('파싱된 시작 시간:', startTimePart.substring(0, 5));
-        console.log('파싱된 종료 시간:', endTimePart.substring(0, 5));
 
         setStartTime(startTimePart.substring(0, 5)); // HH:MM만 추출
         setEndTime(endTimePart.substring(0, 5)); // HH:MM만 추출
@@ -115,12 +107,12 @@ export default function EditScheduleScreen() {
             setSelectedDays(rule.days);
             setRecurrenceEndDate(rule.endDate || '');
           } catch (error) {
-            console.error('Failed to parse recurrence rule:', error);
+            // recurrence rule parse failure - ignore
           }
         }
       }
     } catch (error) {
-      console.error('Failed to load schedule:', error);
+      // load failure handled by UI state
     } finally {
       setInitialLoading(false);
     }
@@ -262,7 +254,6 @@ export default function EditScheduleScreen() {
       router.replace('/(tabs)/schedule');
     } catch (error) {
       Alert.alert('오류', '일정 수정 중 오류가 발생했습니다.');
-      console.error(error);
       setLoading(false);
     }
   };

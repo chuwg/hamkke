@@ -24,7 +24,6 @@ class CalendarService {
       const { status } = await Calendar.requestCalendarPermissionsAsync();
       return status === 'granted';
     } catch (error) {
-      console.error('Failed to request calendar permissions:', error);
       return false;
     }
   }
@@ -44,7 +43,6 @@ class CalendarService {
       // 권한 확인
       const hasPermission = await this.requestPermissions();
       if (!hasPermission) {
-        console.log('Calendar permission not granted');
         return null;
       }
 
@@ -64,7 +62,6 @@ class CalendarService {
           : { isLocalAccount: true, name: CALENDAR_NAME, type: Calendar.SourceType.LOCAL };
 
       if (!defaultCalendarSource) {
-        console.error('No default calendar source found');
         return null;
       }
 
@@ -82,7 +79,6 @@ class CalendarService {
       this.calendarId = newCalendarId;
       return newCalendarId;
     } catch (error) {
-      console.error('Failed to get or create calendar:', error);
       return null;
     }
   }
@@ -107,7 +103,6 @@ class CalendarService {
     try {
       const calendarId = await this.getOrCreateCalendar();
       if (!calendarId) {
-        console.log('No calendar available');
         return null;
       }
 
@@ -123,7 +118,6 @@ class CalendarService {
 
       return eventId;
     } catch (error) {
-      console.error('Failed to create calendar event:', error);
       return null;
     }
   }
@@ -147,7 +141,6 @@ class CalendarService {
 
       return true;
     } catch (error) {
-      console.error('Failed to update calendar event:', error);
       return false;
     }
   }
@@ -162,7 +155,6 @@ class CalendarService {
       await Calendar.deleteEventAsync(eventId);
       return true;
     } catch (error) {
-      console.error('Failed to delete calendar event:', error);
       return false;
     }
   }
@@ -177,7 +169,6 @@ class CalendarService {
       const { status } = await Calendar.getCalendarPermissionsAsync();
       return status === 'granted';
     } catch (error) {
-      console.error('Failed to check calendar permissions:', error);
       return false;
     }
   }

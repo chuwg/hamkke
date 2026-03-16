@@ -154,7 +154,6 @@ export async function fetchSchools(params: {
 
     return { schools, totalCount };
   } catch (error) {
-    console.error('NEIS API 오류:', error);
     throw error;
   }
 }
@@ -192,7 +191,6 @@ export async function fetchSchoolDetail(
 
     return transformNeisSchool(data.schoolInfo[1].row[0]);
   } catch (error) {
-    console.error('NEIS API 오류:', error);
     throw error;
   }
 }

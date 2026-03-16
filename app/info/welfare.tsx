@@ -161,7 +161,6 @@ export default function WelfareSearchScreen() {
       setFacilities(allFacilities);
       setTotalCount(total);
     } catch (err: any) {
-      console.error('검색 오류:', err);
       const errorMessage = err?.message || '알 수 없는 오류';
       setError(`데이터를 불러오는 중 오류가 발생했습니다.\n(${errorMessage})`);
       setFacilities([]);

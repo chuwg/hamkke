@@ -29,12 +29,10 @@ class NotificationService {
   // 알림 권한 요청
   async requestPermission(): Promise<boolean> {
     if (Platform.OS === 'web') {
-      console.log('Notifications not supported on web');
       return false;
     }
 
     if (!Device.isDevice) {
-      console.log('Must use physical device for Push Notifications');
       return false;
     }
 
@@ -47,7 +45,6 @@ class NotificationService {
     }
 
     if (finalStatus !== 'granted') {
-      console.log('Failed to get push token for push notification!');
       return false;
     }
 
@@ -80,7 +77,6 @@ class NotificationService {
 
     const hasPermission = await this.checkPermission();
     if (!hasPermission) {
-      console.log('No notification permission');
       return null;
     }
 
@@ -88,7 +84,6 @@ class NotificationService {
 
     // 과거 시간이면 스케줄링하지 않음
     if (scheduledTime.getTime() <= Date.now()) {
-      console.log('Cannot schedule notification for past time');
       return null;
     }
 
@@ -112,10 +107,8 @@ class NotificationService {
       // 스케줄된 알림 정보 저장
       await this.saveScheduledNotification(scheduleId, notificationId);
 
-      console.log(`Notification scheduled: ${notificationId} for ${scheduledTime}`);
       return notificationId;
     } catch (error) {
-      console.error('Failed to schedule notification:', error);
       return null;
     }
   }
@@ -127,10 +120,9 @@ class NotificationService {
       if (notificationId) {
         await Notifications.cancelScheduledNotificationAsync(notificationId);
         await this.removeScheduledNotification(scheduleId);
-        console.log(`Notification cancelled: ${notificationId}`);
       }
     } catch (error) {
-      console.error('Failed to cancel notification:', error);
+      // cancel failure - silently ignore
     }
   }
 
@@ -139,9 +131,8 @@ class NotificationService {
     try {
       await Notifications.cancelAllScheduledNotificationsAsync();
       await AsyncStorage.removeItem(SCHEDULED_NOTIFICATIONS_KEY);
-      console.log('All notifications cancelled');
     } catch (error) {
-      console.error('Failed to cancel all notifications:', error);
+      // cancel all failure - silently ignore
     }
   }
 
@@ -195,7 +186,6 @@ class NotificationService {
 
     const hasPermission = await this.checkPermission();
     if (!hasPermission) {
-      console.log('No notification permission');
       return;
     }
 

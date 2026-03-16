@@ -74,10 +74,7 @@ export default function AddScheduleScreen() {
 
   // 달력에서 전달받은 날짜가 있으면 자동으로 설정
   useEffect(() => {
-    console.log('=== 전달받은 날짜 ===');
-    console.log('date 파라미터:', date);
     if (date && typeof date === 'string') {
-      console.log('날짜 자동 설정:', date);
       setStartDate(date);
     }
   }, [date]);
@@ -188,15 +185,7 @@ export default function AddScheduleScreen() {
   };
 
   const handleSave = async () => {
-    console.log('=== handleSave 실행 ===');
-    console.log('title:', title);
-    console.log('startDate:', startDate);
-    console.log('startTime:', startTime);
-    console.log('endTime:', endTime);
-    console.log('selectedChild:', selectedChild);
-
     if (!title || !startDate || !startTime || !endTime) {
-      console.log('필수 필드 누락');
       if (typeof window !== 'undefined') {
         window.alert('제목, 날짜, 시작 시간, 종료 시간은 필수 항목입니다.');
       } else {
@@ -206,7 +195,6 @@ export default function AddScheduleScreen() {
     }
 
     if (!selectedChild) {
-      console.log('자녀 미선택');
       if (typeof window !== 'undefined') {
         window.alert('먼저 프로필 탭에서 자녀를 선택해주세요.');
       } else {
@@ -227,14 +215,6 @@ export default function AddScheduleScreen() {
     // 로컬 시간으로 ISO 문자열 생성
     const startDateTime = toLocalISOString(formattedDate, startTime);
     const endDateTime = toLocalISOString(formattedDate, endTime);
-
-    console.log('=== 저장할 값 ===');
-    console.log('입력한 날짜:', startDate);
-    console.log('변환된 날짜:', formattedDate);
-    console.log('입력한 시작 시간:', startTime);
-    console.log('입력한 종료 시간:', endTime);
-    console.log('변환된 시작 시간:', startDateTime);
-    console.log('변환된 종료 시간:', endDateTime);
 
     // 시간 검증
     if (new Date(endDateTime) <= new Date(startDateTime)) {
@@ -269,12 +249,9 @@ export default function AddScheduleScreen() {
 
     setLoading(true);
     try {
-      console.log('=== 데이터베이스 저장 시작 ===');
-
       // 네이티브 캘린더에 이벤트 생성 (모바일만)
       let calendarEventId: string | undefined = undefined;
       if (Platform.OS !== 'web') {
-        console.log('=== 캘린더 이벤트 생성 시작 ===');
         calendarEventId = await calendarService.createEvent({
           title,
           startDate: new Date(startDateTime),
@@ -282,7 +259,6 @@ export default function AddScheduleScreen() {
           notes: description || undefined,
           alarmOffset: reminderMinutes ? -parseInt(reminderMinutes) : undefined,
         }) || undefined;
-        console.log('=== 캘린더 이벤트 생성 완료 ===', calendarEventId);
       }
 
       const result = await schedulesApi.create({
@@ -296,8 +272,6 @@ export default function AddScheduleScreen() {
         reminder_minutes: reminderMinutes ? parseInt(reminderMinutes) : undefined,
         calendar_event_id: calendarEventId,
       });
-      console.log('=== 저장 성공 ===', result);
-
       // 푸시 알림 스케줄링
       if (reminderMinutes && result?.id) {
         const notificationTime = notificationService.calculateNotificationTime(
@@ -312,20 +286,15 @@ export default function AddScheduleScreen() {
           scheduledTime: notificationTime,
           data: { type: 'schedule', scheduleId: result.id },
         });
-        console.log('=== 푸시 알림 스케줄링 완료 ===');
       }
 
-      console.log('=== 네비게이션 시작 ===');
       router.replace('/(tabs)/schedule');
-      console.log('=== 네비게이션 완료 ===');
     } catch (error) {
-      console.log('=== 저장 실패 ===');
       if (typeof window !== 'undefined') {
         window.alert('일정 추가 중 오류가 발생했습니다.');
       } else {
         Alert.alert('오류', '일정 추가 중 오류가 발생했습니다.');
       }
-      console.error(error);
       setLoading(false);
     }
   };

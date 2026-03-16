@@ -29,6 +29,7 @@ export interface Schedule {
   recurrence_rule?: string; // JSON string of RecurrenceRule
   reminder_minutes?: number;
   calendar_event_id?: string; // 네이티브 캘린더 이벤트 ID (모바일 전용)
+  completed?: boolean;
   created_at: string;
   updated_at: string;
 }

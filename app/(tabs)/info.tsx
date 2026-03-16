@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,8 +11,33 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../../contexts/ThemeContext';
+import { WelfareAlert, fetchWelfareAlerts } from '../../services/welfareAlertApi';
 
 const INFO_CATEGORIES = [
+  {
+    id: 'alerts',
+    title: '장애아동 복지 알림',
+    icon: '🔔',
+    description: '장애아동 복지 새 소식 실시간 알림',
+    color: '#2563EB',
+    route: '/info/alerts',
+  },
+  {
+    id: 'child-alerts',
+    title: '아동 복지 알림',
+    icon: '👶',
+    description: '일반 아동 수당, 보육, 교육, 돌봄 정보',
+    color: '#FF9F43',
+    route: '/info/child-alerts',
+  },
+  {
+    id: 'bookmarks',
+    title: '즐겨찾기',
+    icon: '\u2b50',
+    description: '저장한 복지 정보 모아보기',
+    color: '#FFD700',
+    route: '/info/bookmarks',
+  },
   {
     id: 'school',
     title: '학교 정보',
@@ -54,34 +79,21 @@ const QUICK_LINKS = [
   { title: '장애인권익옹호기관', url: 'https://www.naapd.or.kr', icon: '⚖️' },
 ];
 
-const RECENT_UPDATES = [
-  {
-    id: '1',
-    title: '2026년 장애인 복지서비스 안내',
-    date: 'NEW',
-    isNew: true,
-    url: 'https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do',
-  },
-  {
-    id: '2',
-    title: '특수교육대상자 선정 절차 가이드',
-    date: '01.09',
-    isNew: false,
-    url: 'https://www.nise.go.kr/sub/info.do?m=0101&s=nise',
-  },
-  {
-    id: '3',
-    title: '발달재활서비스 바우처 신청 방법',
-    date: '01.05',
-    isNew: false,
-    url: 'https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00004441',
-  },
-];
 
 export default function InfoScreen() {
   const router = useRouter();
   const { theme } = useTheme();
   const [refreshing, setRefreshing] = useState(false);
+  const [recentAlerts, setRecentAlerts] = useState<WelfareAlert[]>([]);
+
+  const loadRecentAlerts = async () => {
+    try {
+      const posts = await fetchWelfareAlerts(5);
+      setRecentAlerts(posts);
+    } catch {}
+  };
+
+  useEffect(() => { loadRecentAlerts(); }, []);
 
   const ds = {
     container: { backgroundColor: theme.colors.background },
@@ -101,9 +113,10 @@ export default function InfoScreen() {
     updateItemBorder: { borderBottomColor: theme.colors.border },
   };
 
-  const onRefresh = () => {
+  const onRefresh = async () => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1000);
+    await loadRecentAlerts();
+    setRefreshing(false);
   };
 
   const handleCategoryPress = (route: string) => {
@@ -121,7 +134,6 @@ export default function InfoScreen() {
           await Linking.openURL(url);
         }
       } catch (error) {
-        console.error('URL 열기 실패:', error);
       }
     }
   };
@@ -183,25 +195,30 @@ export default function InfoScreen() {
         </View>
       </View>
 
-      {/* 최근 업데이트 */}
+      {/* 최근 복지 알림 */}
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, ds.sectionTitle]}>최근 업데이트</Text>
+        <View style={styles.sectionHeader}>
+          <Text style={[styles.sectionTitle, ds.sectionTitle]}>최근 복지 알림</Text>
+          <TouchableOpacity onPress={() => handleCategoryPress('/info/alerts')}>
+            <Text style={{ color: theme.colors.accent, fontSize: 14 }}>전체보기 ›</Text>
+          </TouchableOpacity>
+        </View>
         <View style={[styles.updateCard, ds.updateCard]}>
-          {RECENT_UPDATES.map((update) => (
+          {recentAlerts.length > 0 ? recentAlerts.map((alert) => (
             <TouchableOpacity
-              key={update.id}
+              key={alert.id}
               style={[styles.updateItem, ds.updateItemBorder]}
-              onPress={() => handleQuickLinkPress(update.url)}
+              onPress={() => handleQuickLinkPress(alert.source_url)}
             >
-              {update.isNew ? (
-                <Text style={styles.updateBadge}>NEW</Text>
-              ) : (
-                <Text style={[styles.updateDate, ds.updateDate]}>{update.date}</Text>
-              )}
-              <Text style={[styles.updateText, ds.updateText]}>{update.title}</Text>
+              <Text style={[styles.updateDate, ds.updateDate]}>{alert.date?.slice(5)}</Text>
+              <Text style={[styles.updateText, ds.updateText]} numberOfLines={1}>{alert.title}</Text>
               <Text style={[styles.updateArrow, ds.categoryArrow]}>›</Text>
             </TouchableOpacity>
-          ))}
+          )) : (
+            <Text style={[{ padding: 16, textAlign: 'center', fontSize: 14 }, ds.updateDate]}>
+              알림을 불러오는 중...
+            </Text>
+          )}
         </View>
       </View>
 
@@ -245,12 +262,17 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 16,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginHorizontal: 16,
+    marginBottom: 12,
+  },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
-    marginHorizontal: 16,
-    marginBottom: 12,
   },
   categoryGrid: {
     paddingHorizontal: 16,

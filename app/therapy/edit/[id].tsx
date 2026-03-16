@@ -65,7 +65,7 @@ export default function EditTherapyRecordScreen() {
         setNotes(record.notes || '');
       }
     } catch (error) {
-      console.error('Failed to load therapy record:', error);
+      // load failure handled by UI state
     } finally {
       setInitialLoading(false);
     }
@@ -125,7 +125,6 @@ export default function EditTherapyRecordScreen() {
       } else {
         Alert.alert('오류', '치료 기록 수정 중 오류가 발생했습니다.');
       }
-      console.error(error);
       setLoading(false);
     }
   };

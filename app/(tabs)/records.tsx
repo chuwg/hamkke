@@ -8,12 +8,14 @@ import {
   ActivityIndicator,
   Platform,
   ScrollView,
+  TextInput,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useChild } from '../../contexts/ChildContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { therapyRecordsApi } from '../../services/localStorage';
 import { TherapyRecord } from '../../types';
+import { formatDateFull } from '../../utils/dateFormat';
 import BarChart from '../../components/BarChart';
 import PieChart from '../../components/PieChart';
 
@@ -21,6 +23,7 @@ export default function RecordsScreen() {
   const { selectedChild } = useChild();
   const { theme } = useTheme();
   const [records, setRecords] = useState<TherapyRecord[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -60,7 +63,7 @@ export default function RecordsScreen() {
       const data = await therapyRecordsApi.getByChildId(selectedChild.id);
       setRecords(data);
     } catch (error) {
-      console.error('Failed to load therapy records:', error);
+      // load failure handled by UI state
     } finally {
       setLoading(false);
     }
@@ -89,17 +92,13 @@ export default function RecordsScreen() {
           await therapyRecordsApi.delete(recordId);
           await loadRecords();
         } catch (error) {
-          console.error('Delete error:', error);
           window.alert('삭제 중 오류가 발생했습니다.');
         }
       }
     }
   };
 
-  const formatDate = (dateString: string) => {
-    const [year, month, day] = dateString.split('-');
-    return `${year}년 ${parseInt(month)}월 ${parseInt(day)}일`;
-  };
+  const formatDate = formatDateFull;
 
   const getTherapyTypeColor = (type: string) => {
     const colors: { [key: string]: string } = {
@@ -113,6 +112,15 @@ export default function RecordsScreen() {
     };
     return colors[type] || '#007AFF';
   };
+
+  // 검색 필터링
+  const filteredRecords = searchQuery.trim()
+    ? records.filter(r =>
+        r.therapy_type.includes(searchQuery) ||
+        r.therapist_name?.includes(searchQuery) ||
+        r.notes?.includes(searchQuery)
+      )
+    : records;
 
   // 통계 계산
   const totalSessions = records.length;
@@ -209,6 +217,18 @@ export default function RecordsScreen() {
         </View>
       </View>
 
+      {records.length > 0 && (
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={[styles.searchInput, { backgroundColor: theme.colors.card, color: theme.colors.text, borderColor: theme.colors.border }]}
+            placeholder="치료 유형, 치료사, 메모 검색..."
+            placeholderTextColor={theme.colors.textMuted}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
+      )}
+
       {loading ? (
         <ActivityIndicator size="large" color={theme.colors.accent} style={{ marginTop: 20 }} />
       ) : records.length === 0 ? (
@@ -220,7 +240,7 @@ export default function RecordsScreen() {
         </View>
       ) : (
         <FlatList
-          data={records}
+          data={filteredRecords}
           keyExtractor={(item) => item.id}
           ListHeaderComponent={
             <View style={styles.chartsContainer}>
@@ -298,6 +318,16 @@ export default function RecordsScreen() {
 }
 
 const styles = StyleSheet.create({
+  searchContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  searchInput: {
+    padding: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    fontSize: 14,
+  },
   container: {
     flex: 1,
     backgroundColor: '#fff',

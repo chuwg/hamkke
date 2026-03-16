@@ -65,7 +65,6 @@ export default function EditChildScreen() {
       router.replace('/(tabs)/profile');
     } catch (error) {
       Alert.alert('오류', '프로필 수정 중 오류가 발생했습니다.');
-      console.error(error);
       setLoading(false);
     }
   };

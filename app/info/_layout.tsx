@@ -7,6 +7,9 @@ export default function InfoLayout() {
       <Stack.Screen name="welfare" />
       <Stack.Screen name="support" />
       <Stack.Screen name="education" />
+      <Stack.Screen name="alerts" />
+      <Stack.Screen name="child-alerts" />
+      <Stack.Screen name="bookmarks" />
     </Stack>
   );
 }

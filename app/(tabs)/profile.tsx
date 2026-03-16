@@ -114,7 +114,6 @@ export default function ProfileScreen() {
         }
       }
     } catch (error) {
-      console.error('Backup error:', error);
       Alert.alert('오류', '백업 중 오류가 발생했습니다.');
     } finally {
       setBackupLoading(false);
@@ -181,7 +180,6 @@ export default function ProfileScreen() {
                 setBackupLoading(false);
               }
             } catch (error) {
-              console.error('Restore error:', error);
               Alert.alert('오류', '복원 중 오류가 발생했습니다.');
               setBackupLoading(false);
             }
@@ -189,6 +187,44 @@ export default function ProfileScreen() {
         },
       ]
     );
+  };
+
+  // CSV 내보내기
+  const handleCSVExport = async (type: 'therapy' | 'schedule') => {
+    if (!selectedChild) return;
+    setBackupLoading(true);
+    try {
+      const csvData = type === 'therapy'
+        ? await backupApi.exportTherapyRecordsCSV(selectedChild.id, selectedChild.name)
+        : await backupApi.exportSchedulesCSV(selectedChild.id);
+
+      const label = type === 'therapy' ? '치료기록' : '일정';
+      const fileName = `hamkke_${label}_${selectedChild.name}_${new Date().toISOString().split('T')[0]}.csv`;
+
+      if (Platform.OS === 'web') {
+        const bom = '\uFEFF';
+        const blob = new Blob([bom + csvData], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        a.click();
+        URL.revokeObjectURL(url);
+        Alert.alert('완료', `${label} CSV 파일이 다운로드되었습니다.`);
+      } else if (FileSystem && Sharing) {
+        const fileUri = FileSystem.documentDirectory + fileName;
+        await FileSystem.writeAsStringAsync(fileUri, '\uFEFF' + csvData);
+        if (await Sharing.isAvailableAsync()) {
+          await Sharing.shareAsync(fileUri, { mimeType: 'text/csv', dialogTitle: `${label} CSV 내보내기` });
+        } else {
+          Alert.alert('완료', `CSV 파일이 저장되었습니다:\n${fileUri}`);
+        }
+      }
+    } catch {
+      Alert.alert('오류', 'CSV 내보내기 중 오류가 발생했습니다.');
+    } finally {
+      setBackupLoading(false);
+    }
   };
 
   const themeOptions: { mode: ThemeMode; label: string; description: string }[] = [
@@ -215,7 +251,6 @@ export default function ProfileScreen() {
         try {
           await deleteChild(childId);
         } catch (error) {
-          console.error('Delete error:', error);
           const message = error instanceof Error ? error.message : '알 수 없는 오류';
           window.alert(`삭제 중 오류가 발생했습니다: ${message}`);
         }
@@ -233,8 +268,7 @@ export default function ProfileScreen() {
               try {
                 await deleteChild(childId);
               } catch (error) {
-                console.error('Delete error:', error);
-                const message = error instanceof Error ? error.message : '알 수 없는 오류';
+                      const message = error instanceof Error ? error.message : '알 수 없는 오류';
                 Alert.alert('오류', `삭제 중 오류가 발생했습니다: ${message}`);
               }
             },
@@ -379,6 +413,29 @@ export default function ProfileScreen() {
                 <Text style={styles.backupButtonText}>복원 (가져오기)</Text>
               </TouchableOpacity>
             </View>
+            {selectedChild && (
+              <View style={styles.csvSection}>
+                <Text style={[styles.backupDesc, dynamicStyles.backupDesc]}>
+                  치료 기록 또는 일정을 CSV로 내보내 치료사나 학교에 공유할 수 있습니다.
+                </Text>
+                <View style={styles.backupButtons}>
+                  <TouchableOpacity
+                    style={[styles.backupButton, { backgroundColor: '#34C759' }]}
+                    onPress={() => handleCSVExport('therapy')}
+                    disabled={backupLoading}
+                  >
+                    <Text style={styles.backupButtonText}>치료기록 CSV</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.backupButton, { backgroundColor: '#34C759' }]}
+                    onPress={() => handleCSVExport('schedule')}
+                    disabled={backupLoading}
+                  >
+                    <Text style={styles.backupButtonText}>일정 CSV</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
           </View>
         </View>
 
@@ -710,6 +767,12 @@ const styles = StyleSheet.create({
   backupButtons: {
     flexDirection: 'row',
     gap: 12,
+  },
+  csvSection: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
   },
   backupButton: {
     flex: 1,
